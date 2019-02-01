@@ -1,0 +1,29 @@
+<!-- Filter Menu -->
+<button type="button" class="btn btn-default mc-btn-default dropdown-toggle dropdown-filter" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-hover='popover' data-trigger='hover' data-placement='top' data-html=true data-container='body' data-content="<%= $.i18n.prop('filter_icon_tooltip') %>">
+  <div class="mc-value-default">
+    <i class="menu-icon"></i>
+    <% if (isLabelVisible) { %>
+    <span id="mc_filter_menu_label_off" class="mc-menu-off">
+        <span class="mc-label">Filter:</span>
+        <span class="mc-value">None</span>
+        <i class="dropdown-arrow" />
+    </span>
+    <% } %>
+  </div>
+</button>
+
+<ul class="dropdown-menu">
+  <li data-default-name="none">
+    <div class="container-fluid mc-no-gutter">
+      <div class="row mc-sm-gutter">
+        <div class="col-md-11 col-sm-11 col-xs-11 mc-item">
+          <div class="mc-item-name mc-ellipsis">None</div>
+        </div>
+        <div class="col-md-1 col-sm-1 col-xs-1 pull-right"></div>
+      </div>
+    </div>
+  </li>
+  <li role="separator" class="divider"></li>
+</ul>
+
+<div class="mc-filters-new"></div>

@@ -1,0 +1,67 @@
+<div class="kpi-bar">
+  <label tab-target="APPROVER" class="active">
+    <div class="counter"><%= SCS.TASK_COUNT[0] %></div>
+    Your Approvals</label>
+  <label tab-target="ASSIGNEE">
+    <div class="counter"><%= SCS.TASK_COUNT[1] %></div>
+    Assigned to you</label>
+  <label tab-target="SENTBY">
+    <div class="counter"><%= SCS.TASK_COUNT[2] %></div>
+    Sent by you</label>
+  <% if (has_permission('all_tasks')) { %>
+  <label tab-target="ALL_TASKS">
+    <div class="counter"><%= SCS.TASK_COUNT[4] %></div>
+    All Tasks</label>
+  <% } %>
+</div>
+
+<div class="toolbar" id="global-task-toolbar">
+  <form class="form-inline" role="form" onsubmit="return false;">
+    <div class="form-group dealroom-search has-feedback mc-nav-search-wrap mc-search-with-X">
+      <input type="text" class="search-project form-control mc-nav-search" id="myTaskSearch"
+             placeholder="Search task name, project/asset name, etc">
+      <span class="icon search" title="Search"></span>
+      <span class="icon clear-search" title="Clear"></span>
+    </div>
+  </form>
+
+  <div class="right-buttons">
+    <!-- Action Menu -->
+    <% var actionTooltip = $.i18n.prop('taskAction_icon_tooltip') %>
+    <div class="btn-group mc-menu action-menu-wrapper" data-toggle='popover' data-trigger='hover' data-placement='top' data-html=true data-container='body' data-content="<%= actionTooltip %>">
+      <button type="button" class="btn btn-default mc-btn-default mc-btn-small dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <img src="app/Assets/chevron-blue.png" alt="Action"/>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-right global-actions">
+        <li><a data-action="export">Export CSV</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="task-tab-body-wrap">
+  <!-- <div class="my_task_header">
+    <div class="pull-left">
+      <div class="form-group has-feedback mc-nav-search-wrap mc-search-with-X">
+                <input type="text" class="form-control mc-nav-search"  id="myTaskSearch" placeholder="Search">
+                  <span class="icon search" title="Search"></span>
+                  <span class="icon clear-search" title="Clear"></span>
+            </div>
+    </div>
+    <div class="clearfix"></div>
+  </div> -->
+  <div class="task-tab-body">
+
+  </div>
+
+  <div class="task-footer">
+    <div class="mc-total-label">Total</div>
+    <div class="mc-total-arrow"></div>
+    <div class="mc-count-wrap">
+      <span class="mc-count"></span>
+      Task(s)
+    </div>
+  </div>
+</div>

@@ -1,0 +1,906 @@
+define([
+  'backbone',
+  'views/localizationUtil',
+  'views/pm/taskUtil',
+  'text!templates/projects/filterTpl.html',
+], function(
+    Backbone,
+    LocalizationUtil,
+    TaskUtil,
+    Tpl) {
+  return Backbone.View.extend({
+    events: {
+      'click #mc_btn_cancel_filter': 'onCancel',
+      'click #mc_btn_save_filter': 'onCreate',
+      'click .close': 'onCancel',
+      'click .mc-btn-delete': 'onDeleteRow',
+      'click #mc_add_new_filter_row': 'addRow',
+      'click .mc_new_filter_field_value_text': 'startEditMode',
+      'click .text-toggle-input-box .text-value': 'hideDisplayValueAndEdit',
+      'blur .text-toggle-input-box input': 'showDisplayValueAndExitEdit',
+      'click #modal_delete_filter': 'deleteFilter',
+    },
+
+    template: _.template(Tpl),
+
+    className: 'modal',
+
+    initialize: function(options) {
+      _.extend(this, Backbone.Events);
+
+      this.$el.attr('id', SCS.dialogIds.filter);
+      this.$el.attr('tabindex', '-1');
+      this.$el.attr('role', 'dialog');
+      this.$el.attr('aria-labelledby', SCS.dialogIds.filter + '_label');
+      this.mode = options.mode || 'create';
+      this.filter = options.filter;
+      this.filtersList = options.filtersList;
+      this.entityType = options.entityType;
+      this.filterType = options.filterType || 'Projects';
+      this.userDateFormat = getDateFormat().jQueryFormat;
+      this.invalidDateMsg = 'Invalid date, Please enter date in ' + (this.userDateFormat.toUpperCase()) + 'YY format.';
+      this.datePickerOptions = {
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: this.userDateFormat,
+        constrainInput: true,
+      };
+      this.allAssumptionsList = options.assumptionsList || null;
+      this.dropdownFamily = [
+        'select', 'multiselect', 'userlist', 'yesno', 'orguserlist', 'assignee', 'priority',
+        'approvalstatus', 'projectCategory', 'taskCategory',
+      ];
+
+      this.filterRowTpl = _.template(
+          '<div class="row mc-sm-gutter mc-voffset-10 filter-row">' +
+          '  <div class="col-md-4 col-sm-4">' +
+          '    <select class="form-control mc_new_filter_field_name" data-container="body" data-live-search="true">' +
+          '    </select>' +
+          '  </div>' +
+          '  <div class="col-md-3 col-sm-3">' +
+          '    <select class="form-control mc_new_filter_field_operator"></select>' +
+          '  </div>' +
+          '  <div class="col-md-4 col-sm-4">' +
+          '    <div class="text-toggle-input-box">' +
+          '      <div class="text-value form-control"></div>' +
+          '      <input type="text" class="form-control mc_new_filter_field_value_text" placeholder="">' +
+          '    </div>' +
+          '    <div class="mc_new_filter_field_value_between" style="display:none; ">' +
+          '      <div class="text-center">AND</div>' +
+          '      <div class="text-toggle-input-box">' +
+          '        <div class="text-value form-control"></div>' +
+          '        <input type="text" class="form-control mc_new_filter_field_value_text2" style="display:none;" ' +
+          '               placeholder="" >' +
+          '      </div>' +
+          '    </div>' +
+          '    <select class="form-control mc_new_filter_field_value_select" multiple data-actionsBox=true ' +
+          '            data-container="body" data-live-search="true" style="display:none;"></select>' +
+          '  </div>' +
+          '  <div class="col-md-1 col-sm-1">' +
+          '    <button type="button" class="btn btn-default mc-btn-default mc-btn-delete">' +
+          '      <img src="app/Assets/ico-trash.png" alt="Delete" />' +
+          '    </button>' +
+          '  </div>' +
+          '</div>');
+    },
+
+    render: function() {
+      this.$el.html(this.template());
+      this.show();
+      return this;
+    },
+
+    setData: function(data) {
+      this.mode = data.mode || 'create';
+      this.filter = data.filter;
+      this.filtersList = data.filtersList;
+    },
+
+    show: function() {
+      this.allAssumptionsList = this.allAssumptionsList || SCS.LOGGED_IN_USER.projectConfigVO.assumptionList;
+      // Update ui elements according to filter mode
+      this.updateOptions();
+      if (this.mode === 'create') {
+        // Add first row
+        this.addRow();
+      } else {
+        // Populate rows with data
+        this.populateRows(this.filter);
+      }
+      if (this.filterType !== 'Projects') {
+        // only show "apply to" for project/asset pipeline filters
+        this.$('#mc_apply_to').parents('.row').hide();
+      }
+    },
+
+    updateOptions: function() {
+      var applyToInput = this.$('#mc_apply_to').selectpicker({
+        noneSelectedText: 'Select Categories:',
+      });
+      if (this.filter) {
+        applyToInput.val(this.filter.projectCategories);
+      } else {
+        // if 'create', then select all
+        applyToInput.val(_.map(SCS.PROJECT_CATEGORY_TYPE, function(category) {
+          return category.name;
+        }));
+      }
+      applyToInput.selectpicker('refresh');
+
+      if (this.mode === 'create') {
+        this.$('#modal_create_new_filter_label').text('Create new Filter');
+        this.$('#modal_delete_filter').hide();
+      } else {
+        this.$('#modal_create_new_filter_label').text('Edit Filter');
+        this.$('#modal_delete_filter').show();
+      }
+    },
+
+    populateRows: function(filter) {
+      // Set Filter name
+      this.$('#mc_new_filter_name').val(filter.filterName);
+
+      // Get criteria for filter
+      var criteriaArr = filter.filterData;
+      var criLen = criteriaArr.length;
+      for (var idx = 0; idx < criLen; idx++) {
+        var dataArr = criteriaArr[idx].split('||');
+        // Get assumption
+        var assum = this.getAssumptionFromId(dataArr[0].trim());
+        if (assum) {
+          // Add row for valid assumptions only
+          var row = this.addRow();
+
+          // Set assumption value and trigger onChange to update operators
+          row.find('.mc_new_filter_field_name').val(dataArr[0].trim());
+          row.find('.mc_new_filter_field_name').trigger('change');
+          // Set current operator and trigger onChange to update value fields
+          row.find('.mc_new_filter_field_operator').val(dataArr[1].trim());
+          row.find('.mc_new_filter_field_operator').trigger('change');
+
+          if (dataArr[1] !== 'Between') {
+            // Set value field
+            var value = dataArr[2];
+            var $input = row.find('.mc_new_filter_field_value_text');
+            if (assum.fieldType === 'date') {
+              $input.datepicker('setDate', new Date(value));
+            } else {
+              $input.val(value);
+            }
+            if (assum.fieldType === 'percentage') {
+              this.setDisplayValue($input, assum);
+            }
+          } else {
+            // Values are separated with | for Between.
+            // Set values for both fields
+            var vals = dataArr[2].split('|');
+            var $input1 = row.find('.mc_new_filter_field_value_text');
+            var $input2 = row.find('.mc_new_filter_field_value_text2');
+            if (assum.fieldType === 'date') {
+              $input1.datepicker('setDate', new Date(vals[0]));
+              $input2.datepicker('setDate', new Date(vals[1]));
+            } else {
+              $input1.val(vals[0]);
+              $input2.val(vals[1]);
+            }
+            if (assum.fieldType === 'percentage') {
+              this.setDisplayValue($input1, assum);
+              this.setDisplayValue($input2, assum);
+            }
+          }
+          // Update initial values
+          var valDropdown = row.find('.mc_new_filter_field_value_select');
+          if (dataArr[1] === 'In') {
+            if (dataArr[2].trim() == '*') {
+              $(valDropdown).selectpicker('selectAll');
+            } else {
+              valDropdown.val(dataArr[2].trim().split(','));
+              $(valDropdown).selectpicker('val', dataArr[2].trim().split(','));
+            }
+          } else {
+            valDropdown.val(dataArr[2].trim());
+            $(valDropdown).selectpicker('val', dataArr[2].trim());
+          }
+        }
+      }
+    },
+
+    addRow: function(e) {
+      var _self = this;
+      // Create criteria row
+      var $row = $(this.filterRowTpl());
+
+      // Fill assumption dropdown with available values
+      var dropdown = $row.find('.mc_new_filter_field_name')[0];
+      this.fillAssumptions(dropdown);
+      this.$('#mc_new_filter_list').append($row);
+      // data will be set only when user interacts
+      $row.removeData();
+
+      // Listen to onChange of assumption dropdown. Clear all value fields on change.
+      dropdown.onchange = function() {
+        var opDropdown;
+        // Clear display value on changing Assumption
+        $row.find('.text-value').text('').removeClass('show');
+        if (this.value != -1) {
+          var assumption = _self.getAssumptionFromId(this.value);
+          // Set data for row
+          $row.data('assumption', assumption);
+          // Fill operator values
+          opDropdown = $row.find('.mc_new_filter_field_operator')[0];
+          _self.fillOperatorValues(assumption, opDropdown);
+        } else {
+          // Reset row data
+          $row.removeData();
+          // Clear operators
+          opDropdown = $row.find('.mc_new_filter_field_operator')[0];
+          opDropdown.innerHTML = '';
+        }
+
+        // Clear Value text field
+        var valText = $row.find('.mc_new_filter_field_value_text');
+        valText.val('');
+        valText.datepicker('destroy');
+        valText.show(); // Datepicker hides element on destroy
+
+        // Clear and hide Value select fields
+        var valDropdown = $row.find('.mc_new_filter_field_value_select')[0];
+        valDropdown.innerHTML = '';
+        $(valDropdown).hide();
+        // Reset multiple selection
+        $(valDropdown).selectpicker('hide');
+
+        // Clear and hide second text field
+        $row.find('.mc_new_filter_field_value_between').hide();
+        var text2 = $row.find('.mc_new_filter_field_value_text2');
+        text2.hide();
+        text2.val('');
+        text2.datepicker('destroy');
+        _self.startEditMode({currentTarget: $row.find('.mc_new_filter_field_value_text')[0]}, false);
+      };
+      return $row;
+    },
+
+    fillAssumptions: function(parent) {
+      var innerHtmlText = '<option value="-1">select option</option>';
+      if (this.filterType == 'Projects') {
+        // FIXME: Support legacy default filter
+        innerHtmlText += '<option value="shortName">Name</option>';
+      }
+      $.each(this.allAssumptionsList, function(index, assumption) {
+        // parent.append('<option value="' + assumption.assumptionId + '">' + assumption.header + '</option>');
+        if (assumption.fieldType) {
+          innerHtmlText += '<option value="' + assumption.assumptionId + '">' + assumption.header + '</option>';
+        }
+      });
+      parent.innerHTML = innerHtmlText;
+      $(parent).selectpicker();
+    },
+
+    fillOperatorValues: function(assumption, parent) {
+      // Clear operators
+      var innerHtmlText = '';
+      var _self = this;
+
+      // Get operators according to fieldtype
+      var operators = SCS[SCS.FILTER_OPTIONS[assumption.fieldType] || 'PROJECT_FILTER_TYPE'];
+
+      $.each(operators, function(index, operator) {
+        innerHtmlText += '<option value="' + operator.id + '">' + operator.name + '</option>';
+      });
+      parent.innerHTML = innerHtmlText;
+
+      // Listen to onChange event. Update value fields according to operator
+      parent.onchange = function() {
+        var row = $(parent).parents('.mc-voffset-10');
+        var text2 = row.find('.mc_new_filter_field_value_text2');
+        var betweenField = row.find('.mc_new_filter_field_value_between');
+        var valDropdown = row.find('.mc_new_filter_field_value_select')[0];
+        var valText = row.find('.mc_new_filter_field_value_text');
+        var value;
+        if ('In' === this.value) {
+          // Enable multiselect for 'In' operator
+          if (valDropdown.style.display !== 'none') {
+            valDropdown.innerHTML = row.data('ddInnerHTML');
+            valDropdown.multiple = true;
+            $(valDropdown).selectpicker('updateMode');
+            value = valText.val().trim() === '*' ? '' : valText.val().trim().split(',');
+            valText.val(value);
+            $(valDropdown).selectpicker('val', value);
+
+            // Enable Check mark for selected item
+            // FIXME:Not needed
+            /* if(value) {
+                $('.bootstrap-select.mc_new_filter_field_value_select .dropdown-menu.open li').eq(2)
+                    .addClass('selected');
+            } */
+          }
+        } else if ('Between' === this.value) {
+          // Show second value field for 'Between'
+          text2.show();
+          betweenField.show();
+          // Set datepicker for Date
+          if (assumption.fieldType === 'date') {
+            text2.datepicker(_self.datePickerOptions);
+          }
+        } else {
+          text2.hide();
+          betweenField.hide();
+          text2.val('');
+          text2.datepicker('destroy');
+
+          if (valDropdown.style.display !== 'none') {
+            // Disable multiselect
+            valDropdown.innerHTML = '<option value="*">All</option>' + row.data('ddInnerHTML');
+            valDropdown.multiple = false;
+            $(valDropdown).selectpicker('updateMode');
+
+            value = valText.val().trim() === '' ? '*' : valText.val().trim().split(',')[0];
+            valText.val(value);
+            $(valDropdown).selectpicker('val', value);
+
+            // Enable Check mark for selected item
+            // FIXME: Not Needed
+            // $('.bootstrap-select.mc_new_filter_field_value_select .dropdown-menu.open li')
+            //    .eq(_self.selectOptions.indexOf(value) + 1).addClass('selected');
+          }
+        }
+      };
+    },
+
+    onCreate: function(e) {
+      var criArr = this.isValid();
+      if (criArr && criArr.length) {
+        var filter = {
+          filterName: this.$('#mc_new_filter_list #mc_new_filter_name').val(),
+          filterData: criArr,
+          projectCategories: this.$('#mc_apply_to').val(),
+        };
+        if (this.mode === 'create') {
+          this.trigger('onCreate', filter);
+        } else {
+          this.filter.filterData = criArr;
+          this.filter.projectCategories = filter.projectCategories;
+          this.filter.filterName = this.$('#mc_new_filter_list #mc_new_filter_name').val();
+          this.trigger('onUpdate', this.filter);
+        }
+
+        resetFormErrors(this.$el);
+        // Clear Name
+        this.$('#mc_new_filter_list #mc_new_filter_name').val('');
+
+        // Remove all rows
+        this.$('#mc_new_filter_list .mc-voffset-10').remove();
+
+        // Reset multiple selection
+        $('.bootstrap-select').hide();
+      }
+    },
+
+    isValid: function() {
+      resetFormErrors(this.$el);
+      var retVal = true;
+
+      // check for "apply to"
+      if (this.filterType === 'Projects' && !this.$('#mc_apply_to').val()) {
+        var focusEl = this.$('#mc_apply_to').data('selectpicker').$button;
+        formError('Please select 1 or more categories', focusEl, true);
+        focusEl.focus();
+        return false;
+      }
+
+      // Check for empty filter name
+      var filterName = this.$('#mc_new_filter_list #mc_new_filter_name').val().trim();
+      if (null === filterName || '' === filterName) {
+        formError('Please enter valid filter name', this.$('#mc_new_filter_list #mc_new_filter_name'), true);
+        this.$('#mc_new_filter_list #mc_new_filter_name').focus();
+        return false;
+      }
+
+      if (false === this.isUniqueName(filterName, this.filter ? this.filter.filterId : undefined)) {
+        formError('Please enter unique filter name', this.$('#mc_new_filter_list #mc_new_filter_name'), true);
+        this.$('#mc_new_filter_list #mc_new_filter_name').focus();
+        return false;
+      }
+
+      var rowArr = this.$('#mc_new_filter_list .mc-voffset-10');
+      var criArr = [];
+      var _self = this;
+      $.each(rowArr, function(index, row) {
+        var assumption = $(row).data('assumption');
+        if (assumption && assumption.assumptionId) {
+          // Validate only interacted rows.
+          if (_self.isValidRow($(row), assumption)) {
+            // Generate criteria (assumptionId || operator || value1 | value2)
+            var cri = [];
+            var value = $(row).find('.mc_new_filter_field_value_text').val();
+            cri.push(assumption.assumptionId);
+            cri.push($(row).find('.mc_new_filter_field_operator').val());
+            if (_self.dropdownFamily.indexOf(assumption.fieldType) != -1) {
+              cri.push(value);
+
+              if (cri[2] === '*' && _self.filterType != 'Tasks') {
+                cri[1] = 'Equals';
+              }
+
+              if (_self.filterType === 'Tasks' && assumption.fieldType === 'yesno') {
+                // Convert yes/no to true/false
+                cri[2] = cri[2].replace('Yes', '1').replace('No', '0');
+              }
+            } else if ($(row).find('.mc_new_filter_field_operator').val() === 'Between') {
+              var value2 = $(row).find('.mc_new_filter_field_value_text2').val();
+              if (assumption.fieldType === 'date' && _self.userDateFormat !== LocalizationUtil.defaultDateFormat) {
+                cri.push(LocalizationUtil.parseAndFormatDate(value, _self.userDateFormat) + '|'
+                    + LocalizationUtil.parseAndFormatDate(value2, _self.userDateFormat));
+              } else {
+                cri.push(value + '|' + value2);
+              }
+            } else {
+              if (assumption.fieldType === 'date' && _self.userDateFormat !== LocalizationUtil.defaultDateFormat) {
+                cri.push(LocalizationUtil.parseAndFormatDate(value, _self.userDateFormat));
+              } else {
+                cri.push(value);
+              }
+            }
+            criArr.push(cri[0] + '||' + cri[1] + '||' + cri[2]);
+          } else {
+            retVal = false;
+            return false;
+          }
+        }
+      });
+      if (retVal && criArr.length === 0) {
+        // Atleast one criteria should be valid.
+        formError('Please add criteria', this.$('#mc_new_filter_list .mc-voffset-10'), true);
+        retVal = false;
+      }
+      return retVal ? criArr : retVal;
+    },
+
+    isUniqueName: function(name, id) {
+      var retVal = true;
+      $.each(this.filtersList, function(index, filter) {
+        // Ignore first 'None' entry. Ignore filter being edited.
+        if ((index !== 0) && (filter.filterName === name) && (filter.filterId !== id)) {
+          retVal = false;
+          return false;
+        }
+      });
+      return retVal;
+    },
+
+    isValidRow: function($row, assumption) {
+      var $valueEl = $row.find('.mc_new_filter_field_value_text');
+      var $value2El = $row.find('.mc_new_filter_field_value_text2');
+      var value = $valueEl.val();
+
+      if (this.dropdownFamily.indexOf(assumption.fieldType) !== -1) {
+        if ($row.find('.mc_new_filter_field_value_select').val() === null &&
+            $row.find('.mc_new_filter_field_value_text').val().trim() === '') {
+          if ($valueEl[0].style.display !== 'none') {
+            formError('Please enter value', $valueEl, true);
+            $valueEl.focus();
+          } else {
+            formError('Please enter value', $row.find('.mc_new_filter_field_value_select.bootstrap-select'), true);
+            $row.find('.mc_new_filter_field_value_select.bootstrap-select').focus();
+          }
+          return false;
+        }
+      } else if ($row.find('.mc_new_filter_field_operator').val() === 'Between') {
+        var value2 = $value2El.val();
+        if (value.trim() === '' || value2.trim() === '' || value === '*' || value2 === '*') {
+          formError('Please enter proper values for: ' + assumption.header, $value2El, true);
+          return false;
+        }
+
+        if (assumption.fieldType === 'numeric' || assumption.fieldType === 'percentage') {
+          if (!SCS.RegExp.numbers.test(value)) {
+            $valueEl.focus();
+            formError('Please enter numeric value', $valueEl, true);
+            return false;
+          }
+
+          if (!SCS.RegExp.numbers.test(value2)) {
+            $value2El.focus();
+            formError('Please enter numeric value', $value2El, true);
+            return false;
+          }
+
+          if (1 * value > 1 * value2) {
+            $value2El.focus();
+            formError('First value should not be greater than second', $value2El, true);
+            return false;
+          }
+        } else if (assumption.fieldType === 'date') {
+          if (!LocalizationUtil.validateDate(value, this.userDateFormat)) {
+            $valueEl.focus();
+            formError(this.invalidDateMsg, $valueEl, true);
+            return false;
+          } else if (!LocalizationUtil.validateDate(value2, this.userDateFormat)) {
+            $value2El.focus();
+            formError(this.invalidDateMsg, $value2El, true);
+            return false;
+          } else {
+            var date = $valueEl.datepicker('getDate');
+            var date2 = $value2El.datepicker('getDate');
+            if (date > date2) {
+              $value2El.focus();
+              formError('First date should not be greater than second', $value2El, true);
+              return false;
+            }
+          }
+        }
+      } else {
+        if ((assumption.fieldType === 'numeric' || assumption.fieldType === 'percentage')
+            && !SCS.RegExp.numbers.test(value) && value !== '*') {
+          $valueEl.focus();
+          formError('Please enter numeric value', $valueEl, true);
+          return false;
+        } else if (assumption.fieldType === 'date' && !LocalizationUtil.validateDate(value, this.userDateFormat)) {
+          $valueEl.focus();
+          formError(this.invalidDateMsg, $valueEl, true);
+          return false;
+        } else if (value.trim() === '') {
+          $valueEl.focus();
+          formError('Please enter value', $valueEl, true);
+          return false;
+        }
+      }
+      return true;
+    },
+
+    onCancel: function(e) {
+      resetFormErrors(this.$el);
+      // Clear name
+      this.$('#mc_new_filter_list #mc_new_filter_name').val('');
+      // Remove rows
+      this.$('#mc_new_filter_list .mc-voffset-10').remove();
+      // Reset multiple selection
+      $('.bootstrap-select').hide();
+
+      this.trigger('onCancel');
+    },
+
+    onDeleteRow: function(e) {
+      if (this.$('#mc_new_filter_list .mc-voffset-10').length > 1) {
+        var row = $(e.currentTarget).parents('.mc-voffset-10');
+        row.remove();
+      } else {
+        formError('Atleast one critria should be applied', this.$('#mc_new_filter_list .mc-voffset-10'), true);
+      }
+    },
+
+    deleteFilter: function(e) {
+      resetFormErrors(this.$el);
+      // Clear Name
+      this.$('#mc_new_filter_list #mc_new_filter_name').val('');
+      // Remove all rows
+      this.$('#mc_new_filter_list .mc-voffset-10').remove();
+      // Reset multiple selection
+      $('.bootstrap-select').hide();
+
+      this.trigger('onDelete', this.filter);
+    },
+
+    hideDisplayValueAndEdit: function(e) {
+      var $displayText = $(e.currentTarget);
+      $displayText.removeClass('show');
+      $displayText.siblings('input').focus();
+    },
+
+    showDisplayValueAndExitEdit: function(e) {
+      var $input = $(e.currentTarget);
+      var assumption = $input.parents('.filter-row').data('assumption');
+      if (assumption.fieldType === 'percentage') {
+        var value = $input.val().trim();
+        if (!SCS.RegExp.numbers.test(value) && value !== '*') {
+          formError('Please enter numeric value', $input, true);
+          $input.focus();
+        } else {
+          this.setDisplayValue($input, assumption);
+        }
+      } else {
+        $input.siblings('.text-value').removeClass('show');
+      }
+    },
+
+    setDisplayValue: function($input, assumption) {
+      if (assumption.fieldType === 'percentage') {
+        var value = $input.val().trim();
+        if (value !== '') {
+          value = value === '*' ? '*' : LocalizationUtil.numericRenderer(value, null, assumption.fieldType);
+          $input.siblings('.text-value').text(value).addClass('show');
+        }
+      }
+    },
+
+    startEditMode: function(e, focus) {
+      // Get row and assumption
+      var $row = $(e.currentTarget).parents('.mc-voffset-10');
+      var assumption = $row.data('assumption');
+      if (!assumption.assumptionId) {
+        return;
+      }
+
+      if (this.dropdownFamily.indexOf(assumption.fieldType) != -1) {
+        var valDropdown = $row[0].getElementsByClassName('mc_new_filter_field_value_select')[0];
+        var options = valDropdown.innerHTML;
+        if (options !== '' && assumption.selectOptions) {
+          // Show select and hide textarea
+          e.currentTarget.style.display = 'none';
+          valDropdown.style.display = 'block';
+          return;
+        }
+        if (assumption.fieldType == 'userlist') {
+          if (!SCS.STORE.ADMIN_USERS) {
+            this.loadUsers($row, assumption, 'admin');
+          } else {
+            this.setUsers($row, assumption, 'admin');
+          }
+        } else if (assumption.fieldType == 'orguserlist') {
+          if (!SCS.STORE.ORG_USERS) {
+            this.loadUsers($row, assumption);
+          } else {
+            this.setUsers($row, assumption);
+          }
+        } else if (assumption.fieldType == 'assignee') {
+          if (!SCS.STORE.TASK_RESOURCES) {
+            this.loadTaskResources($row, assumption);
+          } else {
+            this.setTaskResources($row, assumption);
+          }
+        } else if (assumption.fieldType == 'yesno' && assumption.selectOptions) {
+          this.showSelectOptions($row, assumption);
+        } else if (assumption.fieldType == 'priority') {
+          assumption.selectOptions = assumption.selectOptions || SCS.PRIORITIES;
+          this.showSelectOptions($row, assumption);
+        } else if (assumption.fieldType === 'taskCategory') {
+          // empty for now
+          assumption.selectOptions = assumption.selectOptions || TaskUtil.getTaskCategories();
+          this.showSelectOptions($row, assumption);
+        } else if (assumption.fieldType === 'projectCategory') {
+          assumption.selectOptions = assumption.selectOptions
+              || Object.keys(SCS.PROJECT_CATEGORY_TYPE).map(function(key) {
+                return SCS.PROJECT_CATEGORY_TYPE[key].label;
+              });
+          this.showSelectOptions($row, assumption);
+        } else if (assumption.fieldType == 'approvalstatus') {
+          assumption.selectOptions = assumption.selectOptions || SCS.APPROVAL_STATUS;
+          this.showSelectOptions($row, assumption);
+        } else {
+          this.getSelectOptionsAndRender($row, assumption);
+        }
+      } else if (assumption.fieldType == 'date') {
+        $(e.currentTarget).datepicker(this.datePickerOptions);
+        if (focus !== false) {
+          $(e.currentTarget).focus();
+        }
+      }
+    },
+
+    loadUsers: function(row, assumption, type) {
+      var _self = this;
+      row.find('.mc_new_filter_field_operator').attr('disabled', true);
+      // load admin org users store
+      $.ajax({
+        url: 'rest/users/adminOrgUsers/' + SCS.SELECTED_ORG_BY_ADMIN,
+        dataType: 'json',
+        success: function(response) {
+          SCS.STORE.ADMIN_USERS = [];
+          SCS.STORE.ORG_USERS = [];
+          if (response.data) {
+            SCS.STORE.ADMIN_USERS = response.data[0];
+            SCS.STORE.ORG_USERS = response.data[1];
+          }
+          _self.setUsers(row, assumption, type);
+        },
+        complete: function() {
+          row.find('.mc_new_filter_field_operator').removeAttr('disabled');
+        },
+      });
+    },
+
+    setUsers: function(row, assumption, type) {
+      var arr = [];
+      var masterArr = type == 'admin' ? SCS.STORE.ADMIN_USERS : SCS.STORE.ORG_USERS;
+      _.each(masterArr, function(user) {
+        if (!user.firstName && !user.lastName) {
+          arr.push(user.email);
+        } else {
+          arr.push(user.firstName + ' ' + user.lastName);
+        }
+      });
+      assumption.selectOptions = arr;
+      this.showSelectOptions(row, assumption);
+    },
+
+    loadTaskResources: function(row, assumption, type) {
+      var _self = this;
+      row.find('.mc_new_filter_field_operator').attr('disabled', true);
+      // load task resources
+      SCS.STORE.TASK_RESOURCES = [];
+      $.ajax({
+        url: 'rest/wfTask/' + this.entityType + '/taskResources/' + SCS.SELECTED_ORG_BY_ADMIN,
+        dataType: 'json',
+        success: function(response) {
+          SCS.STORE.TASK_RESOURCES = response.data ? response.data : [];
+          _self.setTaskResources(row, assumption, type);
+        },
+        complete: function() {
+          row.find('.mc_new_filter_field_operator').removeAttr('disabled');
+        },
+      });
+    },
+
+    setTaskResources: function(row, assumption, type) {
+      var arr = [];
+      _.each(SCS.STORE.TASK_RESOURCES, function(user) {
+        arr.push(user.name);
+      });
+      assumption.selectOptions = arr;
+      this.showSelectOptions(row, assumption);
+    },
+
+    getSelectOptionsAndRender: function(row, assumption) {
+      var _self = this;
+
+      // For task filters show Yes/No for yesno type fields e.g Milestone
+      if (this.filterType === 'Tasks' && assumption.fieldType === 'yesno') {
+        assumption.selectOptions = ['Yes', 'No'];
+        this.showSelectOptions(row, assumption);
+        return true;
+      }
+
+      if (this.filterType === 'Contacts' && assumption.assumptionId === 'country') {
+        this.showSelectOptions(row, assumption);
+        return true;
+      }
+
+      $.ajax({
+        type: 'GET',
+        url: 'rest/preferences/assumption/selectOptions/' + SCS.LOGGED_IN_USER.orgId + '/' + assumption.assumptionId,
+        dataType: 'json',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          if (response.data) {
+            if (assumption.fieldType === 'yesno') {
+              assumption.selectOptions = response.data.selectOptions ? response.data.selectOptions.split(',') : [
+                'yes',
+                'no'];
+            } else {
+              assumption.selectOptions = response.data.selectOptions ? response.data.selectOptions.split(',') : [];
+            }
+            _self.showSelectOptions(row, assumption);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          // eslint-disable-next-line no-console
+          console.log('Failed to select options for filter');
+        },
+      });
+
+      return true;
+    },
+
+    showSelectOptions: function(row, assumption) {
+      var valDropdown = row[0].getElementsByClassName('mc_new_filter_field_value_select')[0];
+      var valText = row[0].getElementsByClassName('mc_new_filter_field_value_text')[0];
+      var ddInnerHTML = '';
+      this.selectOptions = assumption.selectOptions;
+
+      if (assumption.fieldType === 'assignee') {
+        $.each(SCS.STORE.TASK_RESOURCES, function(index, user) {
+          ddInnerHTML += '<option value="' + user.id + '">' + user.name + '</option>';
+        });
+      } else if (this.filterType === 'Tasks' && assumption.fieldType === 'yesno') {
+        $.each(assumption.selectOptions, function(index, value) {
+          ddInnerHTML += '<option value="' + value.trim().replace('Yes', '1').replace('No', '0') + '">' + value
+              + '</option>';
+        });
+      } else if (this.filterType === 'Contacts' && assumption.assumptionId === 'country') {
+        for (var key in SCS.COUNTRIES) {
+          if (SCS.COUNTRIES.hasOwnProperty(key)) {
+            ddInnerHTML += '<option value="' + key + '">' + SCS.COUNTRIES[key] + '</option>';
+          }
+        }
+      } else if (assumption.fieldType === 'taskCategory') {
+        $.each(assumption.selectOptions, function(index, value) {
+          ddInnerHTML += '<option value="' + value.id + '">' + value.name + '</option>';
+        });
+      } else {
+        $.each(assumption.selectOptions, function(index, value) {
+          ddInnerHTML += '<option value="' + value.trim() + '">' + value + '</option>';
+        });
+      }
+      row.data('ddInnerHTML', ddInnerHTML);
+      var opDropdown = row[0].getElementsByClassName('mc_new_filter_field_operator')[0];
+
+      valDropdown.onchange = function() {
+        // Update textarea
+        // //////$(valText).val($(this).val());
+//                $(valText).val(this.value == -1 ? '' : this.value);
+//                valText.style.display = 'block';
+//                valDropdown.style.display = 'none';
+      };
+
+      // Show select and hide textarea
+      valText.style.display = 'none';
+
+      // Check if we need to show checkbox
+      if (opDropdown.value === 'In') {
+        valDropdown.innerHTML = ddInnerHTML;
+        valDropdown.multiple = true;
+      } else {
+        valDropdown.innerHTML = '<option value="*">All</option>' + ddInnerHTML;
+        valDropdown.multiple = false;
+      }
+
+      $(valDropdown).selectpicker();
+
+      // Set existing values
+      if ($(valText).val().trim() !== '') {
+        if (valDropdown.multiple) {
+          $(valDropdown).val($(valText).val().trim().split(','));
+          // $(valDropdown).selectpicker('val', $(valText).val().trim().split(','));
+        } else {
+          $(valDropdown).val($(valText).val().trim());
+          // $(valDropdown).selectpicker('val',$(valText).val().trim());
+        }
+        $(valDropdown).show();
+        $(valDropdown).selectpicker('updateMode');
+      } else if (valDropdown.multiple === false) {
+        $(valText).val('*');
+        $(valDropdown).val('*');
+        $(valDropdown).show();
+        $(valDropdown).selectpicker('updateMode');
+        $(valDropdown).selectpicker('val', '*');
+      }
+      // Fixme: Temporary fix as bootstrap-select does not show checkbox while switching modes.
+//            $(valDropdown).on('show.bs.select', function(e){
+//            });
+
+      // Fixme: Temporary fix as bootstrap-select does not show checkbox while switching modes.
+      $(valDropdown).on('changed.bs.select', function(e, index, state) {
+        if (state) {
+          $('.bootstrap-select.mc_new_filter_field_value_select .dropdown-menu.open:visible li').eq(index).addClass(
+              'selected');
+        } else {
+          $('.bootstrap-select.mc_new_filter_field_value_select .dropdown-menu.open:visible li').eq(index).removeClass(
+              'selected');
+        }
+        $(valText).val($(valDropdown).val());
+      });
+      // Fixme: Temporary fix as bootstrap-select does not show checkbox while switching modes.
+      $(valDropdown).on('changed.bs.selectAll', function(e, state) {
+        if (state) {
+          $('.bootstrap-select.mc_new_filter_field_value_select .dropdown-menu.open:visible li').addClass('selected');
+          // Update textarea
+          $(valText).val('*');
+        } else {
+          $('.bootstrap-select.mc_new_filter_field_value_select .dropdown-menu.open:visible li').removeClass(
+              'selected');
+          // Update textarea
+          $(valText).val(null);
+        }
+      });
+    },
+
+    getAssumptionFromId: function(aId) {
+      var assump = null;
+      // FIXME: Support legacy default filter
+      if (aId === 'shortName') {
+        return {assumptionId: 'shortName', fieldType: 'text', header: 'Name'};
+      }
+      $.each(this.allAssumptionsList, function(index, assumption) {
+        if (assumption.assumptionId == aId) {
+          assump = assumption;
+          return false;
+        }
+      });
+      return assump;
+    },
+  });
+});

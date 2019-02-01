@@ -1,0 +1,1 @@
+[{"advice":{"interval":0,"timeout":30000,"reconnect":"retry"},"channel":"/meta/connect","id":"2","successful":true}]

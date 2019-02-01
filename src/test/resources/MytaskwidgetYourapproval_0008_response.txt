@@ -1,0 +1,1 @@
+{"data":{"updatedBy":null,"updatedAt":null,"userId":3061,"effectiveDateFormat":"MM/dd/yyyy","effectiveDecimalSeparator":".","effectiveGroupingSeparator":",","createdBy":null,"createdAt":null,"dateFormat":"MM/dd/yyyy","effectiveListSeparator":",","listSeparator":"COMMA","groupingSeparator":"COMMA","decimalSeparator":"DOT"}}

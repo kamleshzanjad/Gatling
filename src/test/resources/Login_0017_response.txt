@@ -1,0 +1,1 @@
+[{"channel":"/meta/subscribe","id":"5","subscription":"/myTask/3341","successful":true}]

@@ -1,0 +1,563 @@
+define([], function() {
+  var taskUtil = {
+
+    calcBusinessDays: function(start, end) {
+      // This makes no effort to account for holidays
+      start = new Date(start);
+      end = new Date(end);
+      var totalBusinessDays = 0;
+
+      // normalize both start and end to beginning of the day
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      var day;
+      var current = new Date(start);
+      // loop through each day, checking
+      while (current <= end) {
+        day = current.getDay();
+        if (SCS.INCLUDE_WEEKENDS_IN_CALCULATION || (day >= 1 && day <= 5)) {
+          ++totalBusinessDays;
+        }
+        current.setDate(current.getDate() + 1);
+      }
+      return totalBusinessDays;
+    },
+
+    isWeekEndValidation: function(dateVal) {
+      var isValid = true;
+      var dateObj = dateVal instanceof Date ? dateVal : new Date(dateVal);
+      var day = dateObj.getDay();
+      if (!SCS.INCLUDE_WEEKENDS_IN_CALCULATION && (day == 0 || day == 6)) {
+        isValid = false;
+      }
+      return isValid;
+    },
+
+    calculateProjectedDates: function(plannedStartDt, plannedFinishDt, actualStartDt, actualEndDt, predLink) {
+      var projectedFinishDt = plannedFinishDt;
+      var projectedStartDt = plannedStartDt;
+      var projectedDuration = '';
+
+      if (actualStartDt && actualEndDt) {
+        projectedStartDt = actualStartDt;
+        projectedFinishDt = actualEndDt;
+      }
+
+      if (projectedStartDt && projectedFinishDt) {
+        projectedDuration = this.calcBusinessDays(projectedStartDt, projectedFinishDt);
+      }
+
+      // Set Projected start equal to today, if it is starting before Today
+      // This is not applicable if both Actual dates are present
+      if (!actualStartDt || !actualEndDt) {
+        var today = new Date(new Date().setHours(0, 0, 0, 0));
+        if (projectedStartDt && projectedStartDt < today) {
+          projectedStartDt = today;
+          // Calculate new Projected end if projected duration is exists
+          if (projectedDuration) {
+            var newPrjDates = this.calcStartAndEndDates(projectedDuration,
+                projectedStartDt, null);
+            projectedFinishDt = newPrjDates.end;
+          }
+        }
+      }
+
+      return {
+        start: projectedStartDt,
+        end: projectedFinishDt,
+        duration: projectedDuration,
+      };
+    },
+
+    trimDurationZeros: function(duration) {
+      if (duration) {
+        var durationArr = this.spiltDuration(duration);
+        return (1 * durationArr[0]) + durationArr[1];
+      } else {
+        return '';
+      }
+    },
+
+    spiltDuration: function(duration) {
+      duration = duration || '';
+      // extract numbers
+      var numArr = duration.trim().match(/\d*\.?\d*/g);
+
+      // extract unit d or h where d=days and h=hours
+      var unitArr = duration.trim().match(/(h|d)/g);
+
+      return [numArr ? numArr[0] : 0, unitArr ? unitArr[0] : ''];
+    },
+
+    getDurationInDays: function(duration) {
+      var durationArr = this.spiltDuration(duration);
+      duration = durationArr[0];
+      var unit = durationArr[1];
+
+      if (unit == 'h') {
+        duration = Math.ceil(duration / 24);
+      }
+
+      return duration;
+    },
+
+    getDatesBasedOnPredecessor: function(predecessor, taskDuration, predecessorTokens) {
+      var pStart = predecessor.plannedStartDt;
+      var pEnd = predecessor.plannedFinishDt;
+      var pDuration = predecessor.plannedDuration;
+      var dependencyType = predecessorTokens.predecessorUnit;
+      var dates;
+      var offsetDates;
+      var offsetVal;
+
+      pStart = pStart ? new Date(pStart) : null;
+      pEnd = pEnd ? new Date(pEnd) : null;
+
+      // Calculate predecessor's dates if not assigned
+      if (!pStart || !pEnd) {
+        // If both  Start and End are missing then consider Today as Predecessors's Start
+        pStart = !pStart && !pEnd ? new Date() : pStart;
+
+        // Consider predecessor's duration as 1 by default
+        pDuration = pDuration ? pDuration : 1;
+
+        dates = this.calcStartAndEndDates(pDuration, pStart, pEnd);
+        pStart = dates.start;
+        pEnd = dates.end;
+      }
+      predecessor.plannedStartDt = pStart;
+      predecessor.plannedFinishDt = pEnd;
+
+      var tDuration = taskDuration ? taskDuration : 1;
+      dates = {start: pStart, end: pEnd};
+
+      if (dependencyType == 'sf' || dependencyType == 'ff') { // Set finish date based on SF or FF
+        var taskFinish = dependencyType == 'ff' ? predecessor.plannedFinishDt : predecessor.plannedStartDt;
+        // Start a day after predecessor date if its Finish to finish
+        if (dependencyType == 'sf') {
+          taskFinish = new Date(taskFinish.getTime());
+          // Commented to fix EIM-3002 set Finish date same as Start of predecessor
+//        taskFinish.setDate(taskFinish.getDate() - 1);
+
+          if (!SCS.INCLUDE_WEEKENDS_IN_CALCULATION) {
+            if (taskFinish.getDay() == '6') {// Saturday
+              taskFinish.setDate(taskFinish.getDate() - 1);// Finish task on Friday
+            } else if (taskFinish.getDay() == '0') {// Sunday
+              taskFinish.setDate(taskFinish.getDate() - 2);// Finish task on Friday
+            }
+          }
+        }
+
+        // Add Subtract offset
+        if (predecessorTokens.offsetType) {
+          // Add extra 1 for offset, as we consider duration = 1 if task has same Start and End
+          offsetVal = 1 * predecessorTokens.offsetValue + 1;
+
+          if (predecessorTokens.offsetType == '+') {
+            offsetDates = this.calcStartAndEndDates(offsetVal, taskFinish, null);
+            taskFinish = offsetDates.end;
+          } else if (predecessorTokens.offsetType == '-') {
+            offsetDates = this.calcStartAndEndDates(offsetVal, null, taskFinish);
+            taskFinish = offsetDates.start;
+          }
+        }
+        dates = this.calcStartAndEndDates(tDuration, null, taskFinish);
+      } else { // Set start date based on FS or SS
+        var taskStart = dependencyType == 'ss' ? predecessor.plannedStartDt : predecessor.plannedFinishDt;
+        // Start a day after predecessor date if its Finish to Start
+        if (dependencyType != 'ss') {
+          taskStart = new Date(taskStart.getTime());
+          taskStart.setDate(taskStart.getDate() + 1);
+
+          if (!SCS.INCLUDE_WEEKENDS_IN_CALCULATION) {
+            if (taskStart.getDay() == '6') {// Saturday
+              taskStart.setDate(taskStart.getDate() + 2);// Start task on Monday
+            } else if (taskStart.getDay() == '0') {// Sunday
+              taskStart.setDate(taskStart.getDate() + 1);// Start task on Monday
+            }
+          }
+        }
+
+        // Add Subtract offset
+        if (predecessorTokens.offsetType) {
+          offsetDates = {};
+          // Add extra 1 for offset, as we consider duration = 1 if task has same Start and End
+          offsetVal = 1 * predecessorTokens.offsetValue + 1;
+
+          if (predecessorTokens.offsetType == '+') {
+            offsetDates = this.calcStartAndEndDates(offsetVal, taskStart, null);
+            taskStart = offsetDates.end;
+          } else if (predecessorTokens.offsetType == '-') {
+            offsetDates = this.calcStartAndEndDates(offsetVal, null, taskStart);
+            taskStart = offsetDates.start;
+          }
+        }
+        dates = this.calcStartAndEndDates(tDuration, taskStart, null);
+      }
+
+      dates.plannedDuration = tDuration;
+      dates.predecessor = predecessor;
+      dates.predecessorTokens = predecessorTokens;
+
+      // valid dates, calculated after dependency type and offset
+      predecessor.validStartDt = dates.start;
+      predecessor.validFinishDt = dates.end;
+
+      return dates;
+    },
+
+    getPredecessorsValidDateRange: function(predecessorArr, duration, predecessorTokenArr) {
+      var maxStartDateRecord = {};
+      var validDates = {};
+      var i;
+
+      if (predecessorArr.length > 0 && predecessorArr.length == predecessorTokenArr.length) {
+        var datesArr = [];
+        for (i = 0; i < predecessorArr.length; i++) {
+          datesArr.push(this.getDatesBasedOnPredecessor(predecessorArr[i], duration, predecessorTokenArr[i]));
+        }
+
+        if (datesArr.length > 0) {
+          var maxStartDate = datesArr[0].start;
+          var maxEndDate = datesArr[0].end;
+          var maxEndDateRecord = maxStartDateRecord = datesArr[0];
+
+          for (var j = 0; j < datesArr.length; j++) {
+            var dates = datesArr[j];
+            if (dates.start > maxStartDate) {
+              maxStartDate = dates.start;
+              maxStartDateRecord = dates;
+            }
+
+            if (dates.end > maxEndDate) {
+              maxEndDate = dates.end;
+              maxEndDateRecord = dates;
+            }
+          }
+        }
+
+        // Check for mixed dependency types
+        var depTypeCounts = {fs: 0, ss: 0, sf: 0, ff: 0};
+        for (i = 0; i < predecessorTokenArr.length; i++) {
+          var type = predecessorTokenArr[i].predecessorUnit ? predecessorTokenArr[i].predecessorUnit : 'fs';
+          depTypeCounts[type] = depTypeCounts[type] + 1;
+        }
+
+        if ((depTypeCounts['ff'] + depTypeCounts['sf'] > 0) &&
+            (depTypeCounts['fs'] + depTypeCounts['ss'] == 0)) {// All ff/sf
+          validDates = maxEndDateRecord;
+        } else if ((depTypeCounts['ff'] + depTypeCounts['sf'] == 0) &&
+            (depTypeCounts['fs'] + depTypeCounts['ss'] > 0)) {// All fs/ss
+          validDates = maxStartDateRecord;
+        } else {// Mixed ff/ss/fs/sf
+          validDates = maxStartDateRecord;
+        }
+
+        // Set multipleDepType flag only if multiple dep is set and this will be used for validation
+        validDates.isMultipleDep = predecessorTokenArr.length > 1;
+      }
+
+      return validDates;
+    },
+
+    getTaskCategories: function() {
+      if (SCS.TASK_CATEGORIES === undefined) {
+        $.ajax({
+          url: 'rest/wfTask/P/taskCategories',
+          dataType: 'json',
+          async: false,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json; charset=utf-8',
+          },
+          success: function(response) {
+            response.data.push({id: null, name: 'None Selected'});
+            SCS.TASK_CATEGORIES = _.sortBy(response.data, function(item) {
+              return (item.id === null ? '' : item.name).toLowerCase();
+            });
+          },
+        });
+      }
+
+      return SCS.TASK_CATEGORIES;
+    },
+
+    predecessorValidation_sameType: function(predecessorVal) {
+      var pArr = predecessorVal.split(',');
+      var isValid = true;
+      var pSplitArr = [];
+
+      _.each(pArr, function(pVal) {
+        if (pVal.trim() && !SCS.RegExp.predecessor.test(pVal.trim())) {
+          isValid = false;
+        } else {
+          pSplitArr.push(this.splitPredecessor(pVal.trim()));
+        }
+      }, this);
+
+      if (!isValid) {
+        return $.i18n.prop('invalid_predecessor_input');
+      }
+
+      // Remove the validation that mandates "same type" dependencies EIM-2750
+//    if(isValid && pSplitArr.length>0){
+//      var pTypeUnique = true,
+//      checkForType = pSplitArr[0].predecessorUnit ? pSplitArr[0].predecessorUnit : "fs";
+//      _.each(pSplitArr, function(pVal){
+//        if(checkForType != (pVal.predecessorUnit ? pVal.predecessorUnit : "fs")){
+//          pTypeUnique = false;
+//        }
+//      }, this);
+//
+//      if(!pTypeUnique){
+//        return $.i18n.prop("invalid_predecessor_same_type");
+//      }
+//    }
+
+      return null;
+    },
+
+    predecessorValidation_duplicateAndItself: function(multiplePredecessorTokens, taskSeqNo) {
+      var seqCounter = {};
+      _.each(multiplePredecessorTokens.seqNos, function(seq) {
+        seqCounter[seq] = seqCounter[seq] ? (1 + seqCounter[seq]) : 1;
+      }, this);
+
+      var isDuplicate = false;
+      var dupSeqNo = 0;
+      for (seq in seqCounter) {
+        if (seqCounter[seq] > 1) {
+          isDuplicate = true;
+          dupSeqNo = seq;
+          break;
+        }
+      }
+      if (isDuplicate) {
+        return $.i18n.prop('invalid_predecessor_multiple_occurrences') + ' ' + dupSeqNo;
+      }
+
+      if (taskSeqNo) {
+        var assignToSelf = false;
+        for (var i = 0; i < multiplePredecessorTokens.seqNos.length; i++) {
+          var seq = multiplePredecessorTokens.seqNos[i];
+          if (taskSeqNo == seq) {
+            assignToSelf = true;
+            break;
+          }
+        }
+
+        if (assignToSelf) {
+          return $.i18n.prop('invalid_predecessor_itself');
+        }
+      }
+
+      return null;
+    },
+
+    calcStartAndEndDates: function(duration, start, end) {
+      // This makes no effort to account for holidays and Counts end day, does not count start day
+      if (!start && !end) {
+        return {start: start, end: end};
+      }
+
+      var delta;
+      var current;
+      var day;
+
+      if (start) {
+        // Calculate End date
+        start.setHours(0, 0, 0, 0);
+        current = new Date(start);
+        delta = 1;
+      } else {
+        // Calculate Start date
+        end.setHours(0, 0, 0, 0);
+        current = new Date(end);
+        delta = -1;
+      }
+
+      while (duration > 1) {
+        current.setDate(current.getDate() + delta);
+        day = current.getDay();
+        if (SCS.INCLUDE_WEEKENDS_IN_CALCULATION || (day >= 1 && day <= 5)) { // Increment/decrement Date for weekends
+          duration--;
+        }
+      }
+
+      return start ? {start: start, end: current} : {start: current, end: end};
+    },
+
+    splitPredecessor: function(value) {
+      // Split predecessor value
+      // extract numbers
+      var numArr = value.match(/\d*/ig);
+
+      // extract dependency type
+      var unitArr = value.match(/(ss|fs|sf|ff)/ig);
+
+      // extract Offset type and value
+      var offsetArr = value.match(/\+|-/g);
+
+      return {
+        predecessorId: (numArr ? numArr[0] : 0),
+        predecessorUnit: (unitArr ? unitArr[0].toLowerCase() : ''),
+        offsetType: (offsetArr ? offsetArr[0] : null),
+        offsetValue: (offsetArr ? (value.split(/\+|-/g))[1] : 0),
+      };
+    },
+
+    splitMultiplePredecessor: function(value) {
+      var pArr = value.split(',');
+      var valueArr = [];
+      var tokensArr = [];
+      var seqNosArr = [];
+
+      _.each(pArr, function(pVal) {
+        valueArr.push(pVal.trim());
+        var pTokens = this.splitPredecessor(pVal.trim());
+        tokensArr.push(pTokens);
+        seqNosArr.push(pTokens.predecessorId);
+      }, this);
+
+      return {
+        tokens: tokensArr,
+        values: valueArr,
+        seqNos: seqNosArr,
+      };
+    },
+
+    resourceOptionRenderer: function(user) {
+      if (!user.id) {
+        return user.text;
+      }
+
+      var image = '';
+      if (user.id.indexOf('_P') > -1) {
+        image = '<span class="avatar-img resource-placeholder"></span>';
+      } else if (user.id.indexOf('_T') > -1) {
+        image = '<span class="avatar-img resource-team"></span>';
+      } else {
+        var id = user.id.split('_')[0];
+        image = '<img class="avatar-img" src="rest/userInfo/photo/download/' + id + '" />';
+      }
+
+      var $option = $('<div class="task-resource">' + image + '<span>' + user.text + '</span></div>');
+      return $option;
+    },
+
+    loadAndViewTask: function(taskId, mode, isApprovalForm, projectName) {
+      showLoader();
+      var _self = this;
+
+      $.ajax({
+        url: 'rest/wfTask/P/taskData/' + taskId,
+        dataType: 'json',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          if (response.data) {
+            _self.openTaskInModal(response.data, mode, isApprovalForm,
+                (projectName ? projectName : response.data.projectName));
+          }
+        },
+        error: function() {
+          // eslint-disable-next-line no-console
+          console.log('Unable to fetch task details');
+        },
+        complete: function() {
+          hideLoader();
+        },
+      });
+    },
+
+    openTaskInModal: function(task, mode, isApprovalForm, projectLink) {
+      var _self = this;
+      require(['views/pm/pmTaskFormView'],
+          function(PmTaskFormView) {
+            SCS.dialogIds.pm_task = 'modal_create_pm_task';
+
+            var form = new PmTaskFormView({
+              id: SCS.dialogIds.pm_task,
+              mode: mode ? mode : 'view',
+              entityId: task.entityId,
+              entityType: task.entityType,
+              data: task,
+              selectedTaskId: task.id,
+              orgId: SCS.LOGGED_IN_USER.orgId,
+              isApprovalForm: isApprovalForm,
+              projectLink: projectLink,
+            });
+
+            form.on('onSave', function() {
+              $('#' + SCS.dialogIds.pm_task).modal('hide');
+              SCS.EVENTS.trigger('taskSaveFromMyTask');
+            });
+
+            form.on('close', function() {
+              $('#' + SCS.dialogIds.pm_task).modal('hide');
+            });
+
+            form.on('onApprove', function(task, comment) {
+              this.approveRejectTask(task, comment);
+            }, _self);
+
+            openViewInDialog(SCS.dialogIds.pm_task, form);
+            form.trigger('onRendered');
+          });
+    },
+
+    approveRejectTask: function(task, comment) {
+      var taskId = task.id;
+      var json = {
+        'id': taskId,
+        'approvalInd': task.approvalInd,
+        'approvalComment': comment,
+      };
+      $.ajax({
+        type: 'POST',
+        url: 'rest/wfTaskApproval/approveRejectTask',
+        dataType: 'json',
+        data: JSON.stringify(json),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          if (task.approvalInd) {
+            toastr.success('We will let the sender know that you approved the task.', 'Thanks for approving the task');
+          } else {
+            toastr.success('We will let the sender know that you rejected the task.', 'Thanks for reviewing the task');
+          }
+
+          SCS.EVENTS.trigger('taskUpdate', taskId * 1);
+        },
+        error: function(jqXHR) {
+          var errorMessage = $.parseJSON(jqXHR.responseText);
+          toastr.error(errorMessage.error, (task.approvalInd ? 'Task Approve' : 'Task Reject'));
+        },
+        complete: function() {
+          $('#' + SCS.dialogIds.approveReject_reason).modal('hide');
+        },
+      });
+    },
+
+    openTaskInProjectsTab: function(task) {
+      var projectType = getProjectTypeByCategory(task.projectCategory) || SCS.PROJECT_CATEGORY_TYPE.PROJECT;
+      var fragment = projectType.id + '/' + task.entityId + '/tasks/' + task.id;
+
+      showLoader();
+
+      if (fragment === Backbone.history.fragment) {
+        // Reset only if we want to select same task again.
+        Backbone.history.fragment = '';
+      }
+
+      SCS.ROUTER.navigate('#' + fragment, true);
+    },
+  };
+
+  return taskUtil;
+});

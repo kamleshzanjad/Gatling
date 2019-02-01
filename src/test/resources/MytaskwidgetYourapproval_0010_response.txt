@@ -1,0 +1,331 @@
+define(['backbone'], function(Backbone) {
+  var AppView = Backbone.View.extend({
+
+    events: {},
+
+    initialize: function() {
+      var _self = this;
+      SCS.dialogIds = {};
+      this.render();
+
+      $('.logout-link').on('click', function() {
+        jasperLogout();
+      });
+
+      $('.rollbackImpersonation').click(function() {
+        _self.rollbackImpersonation();
+      });
+
+      $('.task-notification').on('click', function() {
+        require(['views/pm/taskNotificationView'], function(TaskNotificationView) {
+          if (!SCS.TASK_NOTIFICATION_VIEW) {
+            SCS.TASK_NOTIFICATION_VIEW = new TaskNotificationView();
+            $('#task-notification-pagemask #task-notification-popup').html(SCS.TASK_NOTIFICATION_VIEW.render().$el);
+
+            SCS.TASK_NOTIFICATION_VIEW.on('close', function() {
+              $('#task-notification-pagemask').hide();
+              $('.task-notification').removeClass('active');
+            });
+          }
+          SCS.TASK_NOTIFICATION_VIEW.loadUsersAndNotifications();
+
+          $('#task-notification-pagemask').show();
+          $('.task-notification').addClass('active');
+        });
+      });
+
+      $('#task-notification-pagemask').on('click', function(e) {
+        if (e.currentTarget == e.target) { // ignore notification popup click
+          $('#task-notification-pagemask').hide();
+        }
+      });
+
+      this.listenTo(SCS.EVENTS, 'switchUserLogin', this.switchUserLogin);
+    },
+
+    render: function() {
+      this.renderSystemLock();
+
+      var mainTabsConfigArr = [];
+
+      mainTabsConfigArr.push({
+        label: 'Home',
+        route: SCS.tabIds.home,
+      });
+
+      if (SCS.LOGGED_IN_USER.workfrontUrl) {
+        if (has_permission('advance_work_flow')) {
+          mainTabsConfigArr.push({
+            label: 'My Work',
+            route: SCS.LOGGED_IN_USER.workfrontUrl + '/myWork',
+            target: '_blank',
+          });
+        }
+      } else {
+        if (has_permission('send_conversations_org')) {
+          mainTabsConfigArr.push({
+            label: $.i18n.prop('tab_conversation'),
+            route: SCS.tabIds.conversation,
+          });
+        }
+      }
+
+      if (has_permission('access_projects')) {
+        mainTabsConfigArr.push({
+          label: $.i18n.prop('tab_projects'),
+          route: SCS.tabIds.project,
+        });
+      }
+
+      if (SCS.SELECTED_ORG_AM_IND && has_permission('asset_management')) {
+        mainTabsConfigArr.push({
+          label: 'Assets',
+          route: SCS.tabIds.assets,
+        });
+      }
+
+      if (has_permission('investor')) {
+        mainTabsConfigArr.push({
+          label: 'Investors',
+          route: SCS.tabIds.investor,
+        });
+      }
+
+      if (has_permission('contacts')) {
+        mainTabsConfigArr.push({
+          label: $.i18n.prop('tab_contacts'),
+          route: SCS.tabIds.contacts,
+        });
+      }
+
+      if (!SCS.LOGGED_IN_USER.workfrontUrl) {
+        if (has_permission('show_global_documents')) {
+          mainTabsConfigArr.push({
+            label: 'DOCUMENTS',
+            route: SCS.tabIds.documents,
+          });
+        }
+      }
+
+      if (SCS.LOGGED_IN_USER.orgId == 513) {
+        mainTabsConfigArr.push({
+          label: 'Fund Management',
+          route: 'index.html#' + SCS.tabIds.funds,
+          target: '_blank',
+        });
+      }
+
+      if (has_permission('view_analytics')) {
+        mainTabsConfigArr.push({
+          label: $.i18n.prop('analytics'),
+          route: SCS.tabIds.analysis,
+        });
+      }
+
+      if (has_permission('access_reports_tab')) {
+        mainTabsConfigArr.push({
+          label: $.i18n.prop('tab_report'),
+          route: SCS.tabIds.reports,
+        });
+      }
+
+      if (SCS.LOGGED_IN_USER.workfrontUrl) {
+        if (has_permission('advance_work_flow')) {
+          mainTabsConfigArr.push({
+            label: 'Activities',
+            route: SCS.LOGGED_IN_USER.workfrontUrl + '/projects',
+            target: '_blank',
+          });
+        }
+      }
+
+      mainTabsConfigArr.push({
+        label: $.i18n.prop('tab_preferences'),
+        route: SCS.tabIds.preference,
+      });
+
+      if (has_permission('view_admin')) {
+        mainTabsConfigArr.push({
+          label: $.i18n.prop('tab_admin'),
+          route: SCS.tabIds.admin,
+        });
+      }
+
+      if (!(SCS.SELECTED_ORG_WORKFRONT_IND || SCS.LOGGED_IN_USER.workfrontUrl)) {
+        if (SCS.SELECTED_ORG_LIST_IND && has_permission('global_lists')) {
+          mainTabsConfigArr.push({
+            label: $.i18n.prop('lists'),
+            route: SCS.tabIds.lists,
+          });
+        }
+      }
+
+      if (has_permission('my_task_details')) {
+        mainTabsConfigArr.push({
+          label: $.i18n.prop('my_tasks'),
+          route: SCS.tabIds.mytasks,
+        });
+      }
+
+      var mainTabs = '';
+      _.each(mainTabsConfigArr, function(tab) {
+        mainTabs += '<li><a href="' + (tab.target != '_blank' ? '#' : '') + tab.route + '"' + (tab.target != '_blank'
+            ? '' : 'target="_blank"') + '>' + tab.label + '</a></li>';
+      });
+
+      if (!(SCS.SELECTED_ORG_WORKFRONT_IND || SCS.LOGGED_IN_USER.workfrontUrl)) {
+        if (!SCS.SELECTED_ORG_LIST_IND && has_permission('my_task')) {
+          mainTabs += '<li><a class="task-notification"><div>&nbsp;<span>0</span></div></a></li>';
+          $('body').append(
+              '<div id="task-notification-pagemask">'
+              + '<div id="task-notification-popup" class="dropdown-menu"></div></div>');
+        }
+      }
+
+      $('#mc_navbar').prepend(mainTabs);
+
+//          if(SCS.LOGGED_IN_USER.notificationCount > 0){
+//            $(".task-notification div span").text(SCS.LOGGED_IN_USER.notificationCount).show();
+//          } else {
+//            $(".task-notification").addClass('no-pending');
+//          }
+//          SCS.mainTabs = new TabsView({
+//            //el : SCS.LOGGED_IN_USER.orgCoBrand ? $(".co-brand-header #nav")[0] : $(".normal-header #nav")[0],
+//            el: $("#mc_navbar")[0],
+//            config : {
+//              tabs: mainTabsConfigArr,
+//              styleName: "nav navbar-nav navbar-right"
+//            }
+//          });
+
+//          //Update router to show related tab
+//          SCS.mainTabs.bind("tabSelected", function(tabId) {
+//            if(SCS.LOGGED_IN_USER.orgId!=513 && tabId=="funds"){
+//              tabId="projects";
+//            }
+//            SCS.ROUTER.navigate("#"+tabId, {trigger: true});
+//          });
+      return this;
+    },
+
+    showSupportDialog: function() {
+      var dialogEl = $('#support-ticket-dialog');
+      dialogEl.dialog({
+        height: 600,
+        modal: true,
+        width: 600,
+        dialogClass: 'scs-dialog support-ticket-dialog',
+        title: 'Submit a request',
+        resizable: false,
+      });
+      SCS.showSupportDialog = new SupportDialogView();
+
+      dialogEl.html(SCS.showSupportDialog.render().el);
+
+      SCS.showSupportDialog.on('onCancel', function() {
+        dialogEl.dialog('close');
+      });
+
+      SCS.showSupportDialog.on('onSuccess', function() {
+        dialogEl.dialog('close');
+      }, this);
+    },
+
+    switchUserLogin: function(userJson) {
+      var _self = this;
+      jasperLogout();
+      $.ajax({
+        type: 'GET',
+        url: 'rest/userInfo/impersonateUser/' + userJson.id,
+        success: function(response) {
+          var respObj = eval('(' + response + ')');
+          if (!respObj.error) {
+            _self.refreshPage();
+          } else {
+            alert('User impersonation failed.');
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          alert('User impersonation failed.');
+        },
+      });
+    },
+
+    rollbackImpersonation: function() {
+      var _self = this;
+      jasperLogout();
+      $.ajax({
+        type: 'GET',
+        url: 'rest/userInfo/rollbackImpersonation',
+        success: function(response) {
+          _self.refreshPage();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+        },
+      });
+    },
+
+    refreshPage: function() {
+      showLoader($('body').outerWidth() / 2, $('body').outerHeight() / 2);
+      SCS.ROUTER.navigate('');
+      location.reload();
+    },
+
+    renderSystemLock: function() {
+      var isLock = SCS.LOGGED_IN_USER.lockSystemInd;
+      $('body').attr('system-locked', isLock);
+      $('.system-lock-msg .lock-text').text($.i18n.prop('system_is_locked_for_administrative_purposes'));
+
+      if (!has_permission('allow_lock_system')) {
+        return false;
+      }
+
+      if ($('.lock-system').length == 0) {
+        $('#mc_navbar ul.dropdown-menu').append(
+            '<li role="separator" class="divider"></li>' +
+            '<li><a class="lock-system"></a></li>');
+
+        var _self = this;
+        $('.lock-system').on('click', function() {
+          _self.lockUnlockSystem();
+        });
+      }
+
+      $('.lock-system').attr('data-lock', isLock).text(
+          isLock ? $.i18n.prop('unlock_the_system') : $.i18n.prop('lock_the_system'));
+    },
+
+    lockUnlockSystem: function() {
+      if (!has_permission('allow_lock_system')) {
+        return false;
+      }
+
+      var _self = this;
+      var isLock = $('.lock-system').attr('data-lock') == 'false';
+
+      showLoader($('body').outerWidth() / 2, $('body').outerHeight() / 2);
+      $.ajax({
+        type: 'POST',
+        url: 'rest/orgs/saveUpdateSystemLockSetting',
+        dataType: 'json',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        data: JSON.stringify({
+          orgId: SCS.LOGGED_IN_USER.orgId,
+          lockSystemInd: isLock,
+        }),
+        success: function() {
+          SCS.LOGGED_IN_USER.lockSystemInd = isLock;
+          _self.renderSystemLock();
+        },
+        complete: function() {
+          hideLoader();
+        },
+      });
+    },
+  });
+
+  return AppView;
+});

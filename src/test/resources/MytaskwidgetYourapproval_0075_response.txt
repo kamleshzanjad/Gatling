@@ -1,0 +1,54 @@
+define([
+  'backbone',
+  'text!templates/pm/gridRowTpl.html',
+], function(
+    Backbone,
+    RowTpl) {
+  var View = Backbone.View.extend({
+    events: {
+      'click': 'selectRow',
+      'click div.pm-td': 'onCellClick',
+      'click .cell-editor': 'onCellEdit',
+    },
+
+    className: 'pm-tr',
+
+    template: _.template(RowTpl),
+
+    initialize: function(options) {
+      _.extend(this, Backbone.Events);
+      this.columnConfig = options.cConfig;
+
+      this.model.on('change', function() {
+        this.render();
+      }, this);
+    },
+
+    render: function() {
+      var data = this.model.toJSON();
+
+      this.$el.html(this.template({
+        cConfig: this.columnConfig,
+        data: data,
+        fixedColumn: this.options.fixedColumn,
+      })).attr('data-id', data.id);
+
+      return this;
+    },
+
+    selectRow: function(e) {
+      var rIndex = $(e.currentTarget).index();
+      this.trigger('onRowClick', e, this.model, rIndex);
+    },
+
+    onCellClick: function(e) {
+      var cIndex = $(e.currentTarget).index();
+      this.trigger('onCellClick', e, this.model, cIndex);
+    },
+
+    onCellEdit: function(e) {
+      e.stopPropagation();
+    },
+  });
+  return View;
+});

@@ -1,0 +1,618 @@
+define([
+  'backbone',
+  'models/pm/model',
+  'collections/pm/collection',
+  'views/pm/gridRowView',
+  'text!templates/pm/pmGridTpl.html',
+], function(
+    Backbone,
+    Model,
+    Collection,
+    GridRowView,
+    Tpl) {
+  var View = Backbone.View.extend({
+    events: {
+      'click .group-info .fa': 'expandCollapseGroup',
+    },
+
+    template: _.template(Tpl),
+
+    className: 'pm-table',
+
+    initialize: function(options) {
+      _.extend(this, Backbone.Events);
+      this.columnConfig = options.columnsConfig || [];
+      this.pageNo = 1;
+      this.selectionPivot = null; // for multiselect
+      this.type = options.type || 'projects';
+      this.fixedColumn = options.fixedColumn || false;
+      this.groupBy = options.groupBy || null;
+      this.collapseAll = options.collapseAll || false;
+      this.pagination = options.pagination || false;
+      this.movableColumns = options.movableColumns || false;
+      this.resizableColumns = options.resizableColumns || false;
+      // Object will store all resize actions with resized column Index and its new width
+      // This will be used to restore resized columns when grid is re-rendered internally
+      this.resizeActions = {};
+      this.pageOptions = options.pageOptions || {};
+      this.isIE = !!navigator.userAgent.match(/Trident.*rv:11\./);
+
+      this.mainCollection = new Collection();// All page wise records will get collected here one after another
+      this.dataCollection = new Collection();// Single page records
+      this.baseUrl = options.dataUrl;
+      this.dataCollection.bind('reset', this.onDataLoad, this);
+
+      this.parentChildMapping = {}; // key: parentId, children:[array of child id]
+
+      this.render();
+      if (this.baseUrl) {
+        this.fetchData();
+      }
+    },
+
+    render: function() {
+      var _self = this;
+      this.$el.html(this.template({
+        fixedColumn: this.fixedColumn,
+        columnConfig: this.columnConfig,
+      }));
+
+      if (this.fixedColumn) {
+        $('.pm-table-body').off('scroll.pm_body_scroll');
+        var eleScroll = this.isIE ? this.$('.pm-table-column-scroller') : this.$('.pm-table-body');
+
+        eleScroll.on('scroll.pm_body_scroll', function(e) {
+          _self.syncRowsScroll();
+        });
+
+        if (!(this.isIE)) {
+          $('.pm-table-body-wrapper').off('mousewheel.pm_body_mw');
+          this.$('.pm-table-body-wrapper').on('mousewheel.pm_body_mw', function(e) {
+            if ($(e.target).hasClass('pm-fixed-col') || $(e.target).parents('.pm-fixed-col').length === 1 ||
+                $(e.target).hasClass('group-info') || $(e.target).parents('.group-info').length === 1) {
+              var delta = e.originalEvent.wheelDelta;
+              delta = (delta > 0 ? -1 : 1) * 20;
+              _self.$('.pm-table-body').scrollTop(_self.$('.pm-table-body').scrollTop() + delta);
+            }
+          });
+        }
+      }
+
+      if (this.movableColumns) {
+        this.$('.pm-table-header .pm-tr').sortable({
+          items: 'div.pm-th:not(.drag-disabled)',
+          axis: 'x',
+          update: function(event, ui) {
+            var columnsArr = [];
+            $(this).find('div.pm-th:not(.drag-disabled)').each(function() {
+              columnsArr.push($(this).attr('data-src'));
+            });
+            _self.trigger('onColumnsReordered', columnsArr);
+          },
+        });
+      }
+
+      if (this.resizableColumns) {
+        this.$('.pm-th').resizable({
+          minHeight: 30,
+          maxHeight: 30,
+          resize: function(event, ui) {
+            var colIndex = ui.element.index();
+            // Resize returns value with precision e.g. 176.127542
+            var colWidth = Math.round(ui.size.width) + 'px';
+            var isFixColumn = ui.element.hasClass('pm-fixed-col');
+
+            _self.resizeActions[colIndex] = {width: colWidth, isFixColumn: isFixColumn};
+            _self.resizeColumn(colIndex, colWidth, isFixColumn);
+          },
+        });
+      }
+
+      if (this.pagination) {
+        this.verticalScrollPosition = 0;
+        this.$('.pm-table-body').on('scroll', function() {
+          var element = $(this)[0];
+          var scrollTop = Math.ceil(element.scrollTop);
+          if (scrollTop !== _self.verticalScrollPosition) {// Vertical scroll
+            _self.verticalScrollPosition = scrollTop;
+            var maxScroll = Math.floor(element.scrollHeight - element.clientHeight);
+            if (maxScroll > 0 && scrollTop >= maxScroll) {
+              if (_self.dataCollection.totalCount > _self.mainCollection.length) {
+                _self.pageNo++;
+                _self.fetchData();
+              }
+            }
+          }
+        });
+
+        if (this.options.resultParser) {
+          this.dataCollection.parse = this.options.resultParser;
+        }
+      }
+      return this;
+    },
+
+    resizeColumn: function(colIndex, colWidth, isFixColumn) {
+      // Resize all cells under resized column
+      this.$('.pm-table-header .pm-th:nth-child(' + (1 * colIndex + 1) + ')').css('width', colWidth);
+
+      this.$('.pm-table-body .pm-td:nth-child(' + (1 * colIndex + 1) + ')').css('width', colWidth);
+
+      // Resizing fixed column, update grid layout
+      if (isFixColumn && !this.isIE) {
+        this.$('.pm-table-body').css('margin-left', colWidth);
+        this.$('.mask_fix_column_scroll').css('width', colWidth);
+      }
+    },
+
+    restoreResizedColumns: function() {
+      for (var col in this.resizeActions) {
+        if (this.resizeActions.hasOwnProperty(col)) {
+          var resizeData = this.resizeActions[col];
+          this.resizeColumn(col, resizeData.width, resizeData.isFixColumn);
+        }
+      }
+    },
+
+    setURL: function(url) {
+      this.baseUrl = url;
+      this.fetchData();
+    },
+
+    updateColumns: function(columns) {
+      this.columnConfig = columns;
+      this.saveTreeExpansion();
+      this.render();
+      this.renderGridRows();
+      this.restoreTreeExpansion();
+    },
+
+    fetchData: function() {
+      this.saveTreeExpansion();
+      this.trigger('beforeLoad');
+
+      if (!this.options.buildDataURL) {
+        var filterId = this.type === 'projects' ? SCS.LastLoadedTaskFilter : SCS.LastLoadedTaskTemplateFilter;
+        this.dataCollection.url = this.baseUrl + '/' + (filterId || -1);
+      } else { // Custom data url, when grid is not used for Project/Asset
+        var url = this.options.buildDataURL.call(this);
+        this.dataCollection.url = url ? url : this.baseUrl;
+      }
+
+      if (!this.pagination) {
+        this.dataCollection.fetch();
+      } else { // POST data in case of pagnation
+        this.pageOptions.pageNo = this.pageNo;
+        var _self = this;
+        this.dataCollection.fetch({
+          type: 'POST',
+          data: JSON.stringify(this.pageOptions),
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json; charset=utf-8',
+          },
+          error: function() {
+            _self.trigger('onDataLoad', _self.dataCollection);
+          },
+        });
+      }
+    },
+
+    onDataLoad: function() {
+      this.trigger('onDataLoad', this.dataCollection);
+      this.renderGridRows();
+      this.restoreTreeExpansion();
+      if (this.collapseAll && this.fixedColumn) {
+        this.syncRowsScroll();
+      }
+      this.collapseAll = false;
+      this.fireSelectionChangedEvent();
+
+      // If we don't have a scrollbar, load more rows until we have one or
+      // we have loaded all rows.
+      var bodyDiv = this.$('.pm-table-body')[0];
+      if (bodyDiv.scrollHeight <= bodyDiv.clientHeight) {
+        if (this.dataCollection.totalCount > this.mainCollection.length) {
+          this.pageNo++;
+          this.fetchData();
+        }
+      }
+    },
+
+    setGroupingColumn: function(groupBy) {
+      this.groupBy = groupBy;
+      this.renderGridRows();
+    },
+
+    setData: function(jsonArr, showExpanded) {
+      if (showExpanded !== true) {
+        this.saveTreeExpansion();
+      } else {
+        this.collapsedTasks = [];
+      }
+      this.pageNo = 1;
+      this.dataCollection.reset(jsonArr);
+      this.fireSelectionChangedEvent();
+    },
+
+    saveTreeExpansion: function() {
+      this.collapsedTasks = [];
+      var _self = this;
+      this.$('.pm-tr .task-toggle.expand').each(function() {
+        _self.collapsedTasks.push($(this).parents('.pm-tr').attr('data-id'));
+      });
+    },
+
+    restoreTreeExpansion: function() {
+      _.each(this.collapsedTasks, function(parentId) {
+        this.hideSubTasks(parentId);
+      }, this);
+
+      if (this.fixedColumn) {
+        this.syncRowsScroll();
+      }
+    },
+
+    renderGridRows: function() {
+      if (this.pageNo === 1) {
+        this.$('.pm-table-body').empty();
+        this.parentChildMapping = {};
+        this.mainCollection = new Collection();
+      }
+
+      if (this.groupBy) {
+        this.renderGroupingRows();
+      } else {
+        this.renderRows();
+      }
+      this.trigger('onRender');
+      this.restoreResizedColumns();
+    },
+
+    renderRows: function() {
+      this.dataCollection.each(function(currentModel) {
+        this.renderRow(currentModel);
+
+        // Build parentChildMapping object for Tree expansion
+        var parentId = currentModel.get('parentId');
+        if (parentId) {
+          var arr = this.parentChildMapping[parentId];
+          if (!arr) {
+            arr = [currentModel.get('id')];
+          } else {
+            arr.push(currentModel.get('id'));
+          }
+          this.parentChildMapping[parentId] = arr;
+        }
+      }, this);
+
+      this.mainCollection.add(this.dataCollection.models);
+    },
+
+    renderGroupingRows: function() {
+      var groupMap = {};
+      var groupConfig = null;
+      var groupNames = [];
+
+      var index = indexOfJSONArr(this.options.groupColumns, 'column', this.groupBy);
+      if (index !== -1) {
+        groupConfig = this.options.groupColumns[index];
+      }
+
+      this.dataCollection.each(function(currentModel) {
+        var val = this.getGroupingValue(currentModel, groupConfig);
+        if (!groupMap[val]) {
+          groupMap[val] = [];
+        }
+        groupMap[val].push(currentModel);
+      }, this);
+
+      // Sort Groups and add "None" at the end
+      var noneExists = false;
+      var sortedNamesMap = {};
+      for (group in groupMap) {
+        if (group === 'None') {
+          noneExists = true;
+        } else {
+          var gName = ('' + group).toLowerCase();
+          groupNames.push(gName);
+          sortedNamesMap[gName] = group;
+        }
+      }
+      groupNames.sort();
+      if (noneExists) {
+        groupNames.push('None');
+        sortedNamesMap['None'] = 'None';
+      }
+
+      for (var i = 0; i < groupNames.length; i++) {
+        var group = sortedNamesMap[groupNames[i]];
+        var rows = groupMap[group];
+        if (rows.length) {
+          this.$(
+              '.pm-table-body').append('<div class="group-wrapper"><div class="group-info">' +
+              '<span class="fa fa-caret-down mc-fa-large" data-group="' + group + '"></span>' + groupConfig.name +
+              ': <strong>' + group + '</strong></div></div>');
+          _.each(rows, function(model) {
+            model.set('groupName', group);
+            this.renderRow(model);
+          }, this);
+        }
+      }
+      // Update mainCollection.
+      this.mainCollection.add(this.dataCollection.models);
+    },
+
+    getGroupingValue: function(model, groupConfig) {
+      var val = model.get(this.groupBy);
+
+      if (groupConfig.renderer) {
+        val = groupConfig.renderer(val);
+      }
+
+      return val ? val : 'None';
+    },
+
+    getChildren: function(parentId) {
+      return this.parentChildMapping[parentId];
+    },
+
+    renderRow: function(model) {
+      if (this.collapseAll === true && model.get('isParent')) {
+        this.collapsedTasks.push(model.get('id'));
+      }
+
+      var view = new GridRowView({
+        model: model,
+        cConfig: this.columnConfig,
+        fixedColumn: this.fixedColumn,
+      });
+      this.$('.pm-table-body').append(view.render().el);
+      if (this.groupBy) {
+        view.$el.attr('data-group', view.model.get('groupName'));
+      }
+
+      view.on('onRowClick', function(e, model, rowIndex) {
+        this.changeSelection(e, view, rowIndex);
+        if (this.$('.pm-table-body .pm-tr.selected').length === 0) {
+          this.selectionPivot = null;
+        }
+        this.trigger('onRowClick', view.model);
+      }, this);
+
+      view.on('onCellClick', function(e, model, cIndex) {
+        var clickTarget = $(e.target);
+        if (clickTarget.hasClass('task-toggle')) {
+          this.toggleTaskTree(e, clickTarget, model);
+          e.stopPropagation();
+        } else {
+          this.trigger('onCellClick', e, view.model, cIndex);
+        }
+      }, this);
+    },
+
+    toggleTaskTree: function(e, clickTarget, model) {
+      var isExpand = clickTarget.hasClass('expand');
+
+      if (isExpand) {
+        var childrenArr = this.getChildren(model.get('id'));
+        _.each(childrenArr, function(childId) {
+          this.$('.pm-tr[data-id="' + childId + '"]').show();
+        }, this);
+        clickTarget.removeClass('expand');
+      } else { // hide child
+        this.hideSubTasks(model.get('id'));
+      }
+
+      if (this.fixedColumn) {
+        this.syncRowsScroll();
+      }
+    },
+
+    hideSubTasks: function(parentId) {
+      var childrenArr = this.getChildren(parentId);
+      if (childrenArr) {
+        this.$('.pm-tr[data-id="' + parentId + '"] .task-toggle').addClass('expand');
+      }
+      _.each(childrenArr, function(childId) {
+        this.$('.pm-tr[data-id="' + childId + '"]').hide();
+        this.hideSubTasks(childId);
+      }, this);
+    },
+
+    forceFitTaskGrid: function(minWidth) {
+      this.widths = {};
+      if (this.fixedColumn) {
+        _.each(this.columnConfig, function(column) {
+          this.widths[column.width] = column.width;
+        }, this);
+      } else {
+        var availableWidth = this.$el.width() || minWidth;
+
+        var tableWidth = 0;
+        _.each(this.columnConfig, function(column) {
+          tableWidth += 1 * column.width;
+        }, this);
+
+        var ratio = (availableWidth - 20) / tableWidth; // -20 for scroll bar width
+
+        _.each(this.columnConfig, function(column) {
+          this.widths[column.width] = Math.round(column.width * ratio);
+        }, this);
+      }
+
+      var css = '';
+      for (var width in this.widths) {
+        if (this.widths.hasOwnProperty(width)) {
+          css += ' .pm-cell-' + width + '{ width: ' + this.widths[width] + 'px; } ';
+        }
+      }
+      var style = $('style#pm-grid-style');
+      if (style.length === 0) {
+        $('head').append('<style id="pm-grid-style"></style>');
+        style = $('style#pm-grid-style');
+      }
+      style.text(css);
+
+      if (this.isIE) {
+        var pmTr = this.$('.pm-tr')[0];
+        if (pmTr) {
+          this.$('.pm-table-column-scroller div').width(pmTr.scrollWidth);
+        }
+      }
+    },
+
+    changeSelection: function(e, view, rowIndex) {
+      // normal selection
+      var cntr = e.metaKey || e.ctrlKey;
+      if (!cntr && !e.shiftKey) {
+        this.clearSelection();
+        view.$el.addClass('selected');
+        this.selectionPivot = rowIndex;
+        this.fireSelectionChangedEvent();
+        return;
+      }
+
+      // ctrl + selection
+      if (cntr || (e.shiftKey && this.selectionPivot === null)) {
+        view.$el.toggleClass('selected');
+        this.selectionPivot = rowIndex;
+        this.fireSelectionChangedEvent();
+        return;
+      }
+
+      // shift + selection
+      if (e.shiftKey) {
+        this.clearSelection();
+        var minIndex = Math.min(this.selectionPivot, rowIndex);
+        var maxIndex = Math.max(this.selectionPivot, rowIndex);
+        this.$('.pm-table-body .pm-tr').slice(minIndex, maxIndex + 1).addClass('selected');
+        this.fireSelectionChangedEvent();
+      }
+    },
+
+    clearSelection: function() {
+      this.$('.pm-table-body .pm-tr').removeClass('selected');
+    },
+
+    resetSelection: function() {
+      this.clearSelection();
+      this.selectionPivot = null;
+      this.fireSelectionChangedEvent();
+    },
+
+    fireSelectionChangedEvent: function() {
+      this.trigger('onSelectionChanged', this.getSelection());
+    },
+
+    setSelection: function(rowIds) {
+      _.each(rowIds, function(id) {
+        this.$('.pm-tr[data-id="' + id + '"]').addClass('selected');
+      }, this);
+      this.fireSelectionChangedEvent();
+    },
+
+    getSelection: function() {
+      var modelArr = [];
+      var _self = this;
+      this.$('.pm-table-body .pm-tr.selected').each(function() {
+        var trEl = $(this);
+        modelArr.push(_self.getRowModel(trEl));
+      });
+      return modelArr;
+    },
+
+    getRowModel: function(trEl) {
+      var rowId = trEl.attr('data-id');
+      var model = this.mainCollection.get(rowId);
+      return model ? model : null;
+    },
+
+    getRowDataById: function(rowId) {
+      var model = this.mainCollection.get(rowId);
+      return model ? model.toJSON() : null;
+    },
+
+    getSubTree: function(parentId, resultArr) {
+      resultArr = resultArr || [];
+
+      var childrenArr = this.getChildren(parentId);
+      _.each(childrenArr, function(childId) {
+        resultArr.push(childId);
+        this.getSubTree(childId, resultArr);
+      }, this);
+
+      return resultArr;
+    },
+
+    getCollection: function() {
+      return this.mainCollection;
+    },
+
+    syncRowsScroll: function() {
+      if (this.isIE) {
+        var pmTableColumnScroller = this.$('.pm-table-column-scroller').scrollLeft();
+        this.$('.pm-fixed-col').css('left', pmTableColumnScroller);
+        this.$('.pm-table-body').scrollLeft(pmTableColumnScroller);
+        this.$('.pm-table-header').scrollLeft(pmTableColumnScroller);
+
+        if (this.groupBy) {
+          this.$('.group-info').css('left', pmTableColumnScroller);
+        }
+      } else {
+        // Readin
+        var me;
+        var elements = [];
+        var scrollLeft = this.$('.pm-table-body').scrollLeft();
+        this.$('.pm-fixed-col:visible').each(function(e) {
+          me = $(this);
+          elements.push({
+            ele: me,
+            top: me.parents('.pm-tr').position().top,
+          });
+        });
+
+        if (this.groupBy) {
+          var groupElements = [];
+          this.$('.group-info').each(function(e) {
+            me = $(this);
+            groupElements.push({
+              ele: me,
+              top: me.parents('.group-wrapper').position().top,
+            });
+          });
+        }
+
+        // Rightin
+        elements.map(function(element) {
+          element.ele.css('top', element.top);
+        });
+        if (this.groupBy) {
+          groupElements.map(function(element) {
+            element.ele.css('top', element.top);
+          });
+        }
+
+        this.$('.pm-table-header').css('left', -1 * scrollLeft);
+        this.$('.pm-table-header .pm-fixed-col').css('left', scrollLeft);
+      }
+    },
+
+    expandCollapseGroup: function(e) {
+      var icon = $(e.currentTarget);
+      var group = icon.attr('data-group');
+
+      if (icon.hasClass('fa-caret-down')) { // collapse
+        icon.removeClass('fa-caret-down').addClass('fa-caret-right');
+        this.$('.pm-tr[data-group="' + group + '"]').hide();
+      } else { // expand
+        icon.removeClass('fa-caret-right').addClass('fa-caret-down');
+        this.$('.pm-tr[data-group="' + group + '"]').show();
+      }
+
+      this.syncRowsScroll();
+    },
+  });
+
+  return View;
+});

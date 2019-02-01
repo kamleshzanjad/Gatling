@@ -1,0 +1,239 @@
+define([
+  'backbone',
+  'views/projects/customViewFormView',
+  'text!templates/projects/customViewTpl.html',
+  'text!templates/projects/customViewMenuTpl.html',
+], function(
+    Backbone,
+    CustomViewFormView,
+    CustomViewTpl,
+    Tpl) {
+  var View = Backbone.View.extend({
+    events: {
+      'click .menu-item': 'onViewClick',
+      'click .add-button-menu a': 'createView',
+    },
+
+    template: _.template(Tpl),
+
+    className: 'task-custom-view-menu btn-group mc-menu mc-menu-view',
+
+    initialize: function(options) {
+      _.extend(this, Backbone.Events);
+      this.entityType = options.entityType;
+      this.viewList = options.viewList || [];
+      this.columnList = options.columnList || [];
+      this.selectedView = null;
+
+      this.menuItemTpl = _.template(CustomViewTpl);
+
+      this.newViewLinkTpl = _.template(
+          '<li class="add-button-menu">' +
+          '  <div class="container-fluid mc-no-gutter">' +
+          '    <a>' +
+          '      <div class="row mc-sm-gutter">' +
+          '        <div class="col-md-11 col-sm-11 col-xs-11 mc-item mc-item-link">Create new view...</div>' +
+          '        <div class="col-md-1 col-sm-1 col-xs-1 pull-right"></div>' +
+          '      </div>' +
+          '    </a>' +
+          '  </div>' +
+          '</li>'
+      );
+    },
+
+    render: function() {
+      this.$el.html(this.template());
+      this.populateMenus();
+      return this;
+    },
+
+    populateMenus: function() {
+      var activeView = null;
+      this.$('.dropdown-menu').empty();
+      _.each(this.viewList, function(view) {
+        var $menu = $(this.menuItemTpl(view));
+        $menu.data(view);
+        this.$('.dropdown-menu').append($menu);
+
+        if (view.isLastLoaded && view.data) {
+          activeView = view;
+        }
+      }, this);
+
+      // Add new button
+      // append 'create' menu item for all views, unless it's global tasks && user has permission
+      if (this.entityType !== 'GLOBAL_TASK_VIEW' || has_permission('all_tasks')) {
+        this.$('.dropdown-menu').append('<li role="separator" class="divider"></li>');
+        this.$('.dropdown-menu').append(this.newViewLinkTpl());
+      }
+
+      // Select first filter in none is selected
+      if (!activeView && this.viewList.length > 0) {
+        activeView = this.viewList[0];
+      }
+
+      this.changeView(activeView, false);
+    },
+
+    onViewClick: function(e) {
+      var viewData = $(e.currentTarget).data();
+
+      if ($(e.target).hasClass('m-edit')) {
+        this.showViewForm(viewData);
+        e.stopPropagation();
+        return;
+      }
+
+      this.changeView(viewData);
+      this.updateUserViewSelection();
+    },
+
+    changeView: function(viewData, fireEvent) {
+      this.selectedView = viewData;
+      this.$('button .mc-value').text(this.selectedView.filterName);
+
+      if ((this.selectedView.filterName == 'Default')) {
+        this.$('button').removeClass('btn-primary mc-btn-primary mc-btn-selected').addClass(
+            'btn-default mc-btn-default');
+      } else {
+        this.$('button').removeClass('btn-default mc-btn-default').addClass(
+            'btn-primary mc-btn-primary mc-btn-selected');
+      }
+
+      if (fireEvent !== false) { // refresh tasks
+        this.trigger('onViewChange', this.selectedView);
+      }
+    },
+
+    getSelectedViewId: function() {
+      return this.selectedView ? this.selectedView.filterId : null;
+    },
+
+    getCustomizedColumns: function() {
+      return (this.selectedView && this.selectedView.data) ? this.selectedView.data.split(',') : [];
+    },
+
+    getCustomizeColumnConfig: function(columnsArr) {
+      var newConfiguration = [];
+      columnsArr = columnsArr || this.getCustomizedColumns();
+      _.each(columnsArr, function(src) {
+        var recordIndex = indexOfJSONArr(this.columnList, 'src', src);
+        if (recordIndex != -1) {
+          newConfiguration.push(this.columnList[recordIndex]);
+        }
+      }, this);
+      return newConfiguration;
+    },
+
+    createView: function() {
+      this.showViewForm();
+    },
+
+    showViewForm: function(selectedView) {
+      if (isSystemLock()) {
+        return false;
+      }
+
+      SCS.dialogIds.view = 'modal_edit_view';
+
+      var form = new CustomViewFormView({
+        columnsArr: this.columnList,
+        allViewList: this.viewList,
+        selectedView: selectedView,
+        entityType: this.entityType,
+        mode: 'Tasks',
+      });
+      form.on('onSave', function(view, isNew) {
+        $('#' + SCS.dialogIds.view).modal('hide');
+
+        if (isNew) {
+          // insert new filterVos and re-render Menus
+          this.viewList.push(view);
+          this.populateMenus();
+          // Show new View
+          this.changeView(view);
+          toastr.success('You have successfully created a new View.', 'Create new View');
+        } else {
+          this.$('li[data-id="' + view.filterId + '"]').data('data', view.data).data('filterName',
+              view.filterName).data('sharedInd', view.sharedInd).find('.mc-item-name').text(view.filterName
+              + (view.sharedInd ? ' (shared)' : ''));
+          // Refresh tasks if selected View changes
+          if (this.selectedView.filterId == view.filterId) {
+            this.changeView(view);
+          }
+
+          // update global filterVos
+          var recordIndex = indexOfJSONArr(this.viewList, 'filterId', view.filterId);
+          if (recordIndex != -1) {
+            this.viewList[recordIndex].data = view.data;
+            this.viewList[recordIndex].filterName = view.filterName;
+            this.viewList[recordIndex].sharedInd = view.sharedInd;
+          }
+          toastr.success('You have successfully updated the View.', 'Edit View');
+        }
+      }, this);
+
+      form.on('onDelete', function(viewId) {
+        $('#' + SCS.dialogIds.view).modal('hide');
+
+        // Remove from local store
+        spliceJSONArr(this.viewList, 'filterId', viewId);
+        var $menu = this.$('li[data-id="' + viewId + '"]');
+        $menu.next().remove();
+        $menu.remove();
+
+        // Select first View if user deletes selected View
+        if (this.selectedView.filterId == viewId) {
+          this.changeView(this.$('li.menu-item').data());
+        }
+      }, this);
+
+      openViewInDialog(SCS.dialogIds.view, form);
+    },
+
+    updateUserViewSelection: function() {
+      $.ajax({
+        url: 'rest/wfTask/' + this.entityType + '/views/updateLastLoaded/' + (this.selectedView.filterId
+            ? this.selectedView.filterId : -1),
+        type: 'POST',
+      });
+    },
+
+    saveColumnOrder: function(columns) {
+      // update current view
+      var view = this.selectedView;
+      view.data = columns;
+
+      // update UI
+      this.$('li[data-id="' + view.filterId + '"]').data('data', view.data);
+
+      // update global filterVos
+      var recordIndex = indexOfJSONArr(this.viewList, 'filterId', view.filterId);
+      if (recordIndex != -1) {
+        this.viewList[recordIndex].data = view.data;
+      }
+
+      // Update DB
+      var json = {
+        userId: view.userId,
+        data: view.data,
+        filterName: view.filterName,
+        filterId: view.filterId,
+        orgId: view.orgId,
+        sharedInd: view.sharedInd,
+        defaultInd: view.defaultInd,
+      };
+      $.ajax({
+        type: 'POST',
+        url: 'rest/wfTask/' + this.entityType + '/views/save',
+        dataType: 'json',
+        data: JSON.stringify(json),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      });
+    },
+  });
+  return View;
+});

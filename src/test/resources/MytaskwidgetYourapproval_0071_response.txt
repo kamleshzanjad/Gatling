@@ -1,0 +1,14 @@
+<button type="button" class="btn btn-default mc-btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+  <div class="mc-value-default">
+    <i class="menu-icon"></i>
+    <span id="mc_view_menu_label_off" class="mc-menu-off">
+      <span class="mc-label">View:</span>
+      <span class="mc-value">Default</span>
+        <i class="dropdown-arrow"></i>
+    </span>
+  </div>
+</button>
+
+<ul class="dropdown-menu">
+
+</ul>

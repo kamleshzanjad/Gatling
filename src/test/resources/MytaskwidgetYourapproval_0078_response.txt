@@ -1,0 +1,58 @@
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header mc-modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <img src="app/Assets/close.png" alt="Close"/>
+      </button>
+      <h4 class="modal-title" id="modal_create_new_filter_label">Create new Filter</h4>
+    </div>
+
+    <div class="modal-body mc-modal-body mc-modal-body-filter">
+      <form>
+        <div id="mc_new_filter_list" class="container-fluid mc-no-gutter">
+          <div class="row mc-sm-gutter">
+            <div class="col-md-2 col-sm-2 mc-voffset-5">
+              <label>Apply To:</label>
+            </div>
+            <div class="col-md-9 col-sm-9">
+              <select id="mc_apply_to" class="form-control multiselect" multiple>
+                <% _.each(SCS.PROJECT_CATEGORY_TYPE, function(category) { %>
+                <option value="<%= category.name %>"><%= category.label %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-1 col-sm-1"></div>
+          </div>
+          <div class="row mc-sm-gutter mc-voffset-10">
+            <div class="col-md-11">
+              <input type="text" id="mc_new_filter_name" class="form-control" value="" placeholder="Filter name">
+            </div>
+            <div class="col-md-1 col-sm-1"></div>
+          </div>
+        </div>
+      </form>
+      <div class="row mc-sm-gutter mc-voffset-20">
+        <div class="col-md-12">
+          <a id="mc_add_new_filter_row">Add new row</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer mc-modal-footer">
+      <div class="container-fluid mc-no-gutter">
+        <div class="row mc-no-gutter">
+          <div class="col-md-6 col-xs-4 text-left mc-modal-footer-link">
+            <a id="modal_delete_filter">
+              Delete this filter
+            </a>
+          </div>
+          <div class="col-md-6 col-xs-8 text-right">
+            <button type="button" class="btn btn-default mc-btn-default" data-dismiss="modal" id="mc_btn_cancel_filter">Cancel</button>
+            <button type="button" class="btn btn-primary mc-btn-primary" id="mc_btn_save_filter">Save Filter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

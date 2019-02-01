@@ -1,0 +1,1 @@
+[{"minimumVersion":"1.0","clientId":"59imvb513qlsaz7jfto5wj4a00","supportedConnectionTypes":["callback-polling","long-polling"],"channel":"/meta/handshake","id":"1","version":"1.0","successful":true}]

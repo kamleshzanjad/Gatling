@@ -1,0 +1,992 @@
+tab_yourHub = Your Hub
+tab_projects = Projects
+tab_assets = Assets
+tab_investors = Investors
+tab_analysis = Analysis
+tab_preferences = Preferences
+tab_conversation = Conversations
+tab_admin = Admin
+tab_report = Reports
+tab_tasks = Tasks
+my_tasks = My Tasks
+tab_contacts = Contacts
+
+administration = Administration
+manage_sequence = Manage Sequence
+assumption_sequence_manage = Assumption Sequence Management
+category_sequence_manage = Category Sequence Management
+macro_details = Macro Details
+
+start_new_conversation = Start new conversation
+ping_my_network = Ping my Network
+export_as_pdf = Export as PDF
+tab_filter = Filter
+tab_search = Search
+tab_submit = Submit
+export = Export
+
+subject = Subject
+project = Project
+Created_by = Created By
+participants = Participants
+date = Date
+replies = Replies
+action = Action
+actions = Actions
+comments = Comments
+
+edit = Edit
+delete = Delete
+create = Create
+
+back_to_conversation_list = Back to Conversation List
+post_a_response = Post a Response
+post_comment = Post Comment
+manage_participants = Manage Participants
+manage_portfolio = Manage Portfolio 
+create_converstion = Create Conversation
+
+customize_project_list = Customize Project List
+close = close
+select_metrics = Select Metrics
+free_space_remaining = Free space remaining:
+cancel = Cancel
+ok = OK
+deal_room = Deal Room
+solicited_deals = Solicited Deals
+create_project_portfolio = Create Project Portfolio
+create_project = Create Project
+copy_project = Copy Project
+solicit_deal = Solicit Deal
+filter_project_list = Filter Project List
+select_metric = Select Metric
+choose_property = Choose property
+equals = Equals
+
+active_filters = Active Filters
+add_filter = Add Filter
+autocomplete = Autocomplete
+
+analytics = Analytics
+pipeline_performance = Pipeline & Performance
+advanced = Advanced
+gooddata = GoodData
+organization = Organization
+assumptions = Assumptions
+user = User
+
+organization_users = Organization & Users
+project_admin = Project Admin
+fms = Model
+m_fms = M-FMS
+details_management = Details Management
+roles_management = Roles Management
+model_settings = Model Settings
+global_tables = Global Tables
+global_tables_overrides = Project Overrides
+
+view_project_details = View Project Details
+project_quick_view = Project Quick View
+metric = Metric
+value = Value
+mercatus_evaluation = Mercatus Evaluation
+view_more = view more
+project_notes = Project Notes
+
+view_details = View Details
+create_portfolio_report = Create Portfolio Report
+portfolio_quick_view = Portfolio Quick View
+portfolio_notes = Portfolio Notes
+
+lock_project_details = Lock Details
+active = Active
+requires_client_review = Requires client review
+last_evaluation_run = Last evaluation run
+refresh = Refresh
+update = Update
+request_evaluation = Request Evaluation
+sections = SECTIONS
+project_status = Project Status
+percent_completion = Percent Completion
+
+portals = Portals
+portal_settings = Portal Settings
+organization_logo = Organization Logo
+customer_portal_status = Customer Portal Status
+portal_address = Portal Address
+internal_users = Internal Users
+default_assumptions = Default Assumptions
+organization_settings = Organization Settings
+partner_portal = Partner Portal
+welcome_message = Welcome Message
+interface_base_color = Interface Base Color
+save_config = Save Config
+set_column_config = Set column config
+welcome_message_error = Welcome message along with its formatting exceeds the maximum allowed limit of 4096 symbols
+color_picker_error_message = Unrecognized color. Example #0b78be
+portal_has_active_users_error = Selected Portal can't be deleted while it has active users. Active users:
+portal_delete_message = Are you sure you want to delete the selected Portal?
+portal_delete_confirmation = Portal deleted successfully
+
+permissions = Permissions
+field_level_permissions = Field level Permissions
+select_category = Select Category
+set_to = Set To
+clear = Clear
+read_only = Read Only
+user_does_not_have_edit_field_permission = User does not have edit field permission
+field_permission_fetch_error = Failed to fetch user's field permissions
+server_error = Server error
+
+edit_view = Edit View
+details_view = Details View
+view_name = View Name
+assign_roles_for_views = Assign Roles for Views
+select_roles = Select Role(s)
+enter_view_name = Enter View Name
+
+add/remove_internal = Add/Remove Internal
+search_internal_participants = Add Participants
+participants_access_project = Participants will have access to the project
+add_participant = Add Participant
+ext_participants = Invite External Participants
+limited_access_project = Participants will have limited access to the project
+project_participants = Project Participants
+enter_emailaddress = Enter email address(es) separate w/ commas
+
+name_portfolio = Name Portfolio
+name_projportfolio = Name Project Portfolio
+max_40_char = 40 characters max
+select_projects = Select Projects
+select_project_portfolio = Select projects to be included in portfolio
+add = Add
+delete_portfolio = Delete Portfolio
+
+project_name = Project Name
+save = Save
+select_project/portfolio = Select Project/Portfolio
+project/portfolio_wish_solicit = Please select the project or portfolio that you wish to solicit
+select_entity = Select Entity
+entity_solicit_project/portfolio = Select the entity to solicit the above project/portfolio
+
+create_new_list = Create new List
+newlist_from_template = New List from Template
+list_title = Give the list a title
+save_addtasks = Save & start adding tasks
+list_as_template = Save List as Template 
+active_tasks = Active tasks
+completed_tasks = Completed tasks
+move = Move
+save_changes = Save Changes
+add_new_item = Add a new Item
+enter_tasklabel = Enter task label
+add_tag = Add tag
+unassigned = Unassigned
+no_due_date = No Due Date
+
+personal_template = Personal Template(s)
+organization_template = Organization Template(s)
+search/create_new = Search or Create new
+existing_list_tags = Existing List Tags
+assign_item = Assign this item to
+person_notified = The person you select will be notified by email
+set_duedate = Set the due date
+
+add_user = Add User
+first_name = First Name
+last_name = Last Name
+email_address = E-mail Address
+telephone = Telephone
+password = Password
+retype_password = Re-type Password
+
+name = Name
+email = E-mail
+last_login = Last Login
+permission = Permission
+
+basic_info = My Basic Info
+organization = Organization
+old_password = Old Password
+new_password = New Password
+notifications = Notifications
+change = Change
+notifications_email = Receive System Notifications via e-mail?
+receive_notifications = How often would you like to receive notifications?
+assumption = Assumption
+default_value = Default Value
+format = Format
+portal_user = Portal User
+
+user_localization_preferences = User Localization Preferences
+decimal_symbol = Decimal Symbol
+digit_grouping_symbol = Digit Grouping Symbol
+list_separator = List Separator
+date_format = Date Format
+localization_cofig_saved = Localization preferences has been changed successfully
+
+default_assumption = Edit Organization Default Assumption
+assumption_name = Assumption Name
+format_units = Format(Units)
+
+fms_model_file = FMS Model File
+by = By
+upload_xls_file = Upload FMS Model xls file here
+download_xls = Download XLS
+download_in_progress = Download in Progress
+
+new_organization = New Organization
+organization_name = Organization Name
+organization_unique_id = Organization Unique ID
+organization_desc = Organization Desc
+primary_user_firstname = Primary User First Name
+primary_user_lastname = Primary user Last Name
+primary_user_email = Primary User Email
+primary_user_password = Primary User Password
+licenses = Licenses
+number_of_power = Number of Power
+number_of_lite = Number of Lite
+session_timeout  = Session Timeout (In Minutes)
+max_file_size  = Max upload file size limit (In MB)
+model_selection  = Model Selection
+co_brand = Co-Branding
+role = Role
+storage_service= Storage Service
+perf_time_frame = Performance Data Frequencies
+help_perf_time_frame = Frequencies available for performance data
+perf_year_tooltip = 4-digit Year: range 1970 to 9999
+perf_month_tooltip = Month
+perf_day_tooltip = Day of Month: range 1 to 31
+perf_hour_tooltip = Hour of Day (24-hour time): range 0 to 23
+perf_minute_tooltip = Minute: 0 or 30 for Half-Hourly
+
+model_validation = Model Validation
+active_model_file = Active Model File
+missing_assumption = Missing Assumption
+validation_msg = Validation
+assumptions_management = Assumptions Management
+sync_with_reports = Sync with Reports
+label = Label
+description = Description
+unit = Unit
+time_frame = Frequency
+field_type = Field Type
+range_column_header = Column Header
+range_row_header = Row Header
+named_range_positional = Positional Updates
+range_datatype = Data Type
+union_shared_header = Shared Header
+union_shared_ranges = Shared Name Ranges
+union_selected_ranges = Union Selected Ranges
+help_text = Help Text
+min_value = Min Value
+max_value = Max Value
+select_options = Select Options
+weight = Weight
+notes = Notes
+reference_name = Reference Name
+mapped_reference_name = Mapped Reference Name
+is_required = Is Required
+is_calculated = Is Calculated
+formula = Formula
+viewable_by = Viewable By
+editable_by = Editable By
+assumption_level = Assumption Level
+is_read_only = Is Read only
+is_config_only = Is Config
+project_creation_ind = Creation Field
+wf_custom_ind = Workfront Custom Field
+is_usedbyanalytics=Used By Analytics
+field_format = Field Format
+field_precision = Field Precision
+consolidation_portfolio = Consolidation for Portfolio
+consolidation_portfolio_refname = Consolidation Assumption
+min = Min
+max = Max
+custom_model_lbl = Custom FMS Model
+commonly_used = Commonly Used
+
+new_category = New Category
+category_name = Category Name
+category_desc = Category Desc
+order_no = Order No
+
+add_assumption = Add Assumption
+primary_account = Primary Account
+users = #Users
+projects = Projects
+networks = Networks
+permission = Permission
+add_role = Add Role
+role_name = Role Name
+role_desc = Role Desc
+
+previous = Previous
+next = Next
+info = info
+scoring_components = Scoring Components
+in_development = In Development
+quick_reference = Quick Reference
+financing = Financing
+construction = Construction
+proj_developmt_timeline = Project Development Timeline
+cash_flow = Cash Flow
+sensitivity = Sensitivity
+mercatus_evaluation = Mercatus Evaluation
+nosupport_html5canvastag = Your browser does not support the HTML5 canvas tag
+close = Close
+
+assumption_notes = Assumption Notes
+notes = Notes (Limit 255 characters)
+change_log = Change Log
+current_version = Current Version
+restore = Restore
+lists = Lists
+all_lists = See all lists
+comment_1 = 1 Comment
+discuss_item = Discuss this item
+add_comment = Add a comment
+template_name = Enter template name
+project_summary = Project Summary
+
+summary = Summary
+details = Details
+expenses = Expenses
+documents = Documents
+conversations = Conversations
+
+project_details = Project Details
+project_expenses = Project Expenses
+project_documents = Project Documents
+project_conversations = Project Conversations
+project_lists = Project Lists
+
+create_user = Create User
+assign_permissions = Assign Permissions
+create_assumption = Create Assumption
+create_category = Create Category
+edit_assumption = Edit Default Assumption
+create_organization = Create Organization
+create_role = Create Role
+edit_category = Edit Category
+edit_organization = Edit Organization
+
+enter_subject = Enter Subject
+locale = Locale
+edit_project_portfolio = Edit Project Portfolio
+unlock_project_details = Unlock Details
+
+download = Download
+open = Open
+document = Document
+category = Category
+sub_category = Sub Category
+flagged = Flagged
+internal = Internal
+
+changes_pending = Changes Pending
+complete = Complete
+
+refresh_data = Refresh Data
+last_updated = Last updated
+mw_dc = MW's (DC) 
+avg_project_size = Avg Project Size (MW DC)
+avg_mscore = Average Norstar
+avg_acquisition_cost = Avg Acquisition Cost ($/W)
+avg_npv = Avg NPV ($m)
+avg_ebitda = Avg EBITDA ($m)
+avg_unlevered_irr = Avg Unlevered IRR
+avg_closure_rate = Avg Closure Rate
+avg_time_closure = Avg Time to Closure (Days)
+total_mw_group = Total MW's by Functional Group (Originated by Quarter)
+total_projects_group = Total Projects by Functional Group (Originated by Quarter)
+pipeline_status = Pipeline by Current project Status
+
+#analytics data table
+row_label = *Row Label 
+total_Projects = Total Projects  
+total_mw = Total MWs
+mScore_Avg = Norstar Avg
+unlevered_IRR_Avg = Unlevered IRR Avg
+levered_IRR_Avg = Levered IRR Avg
+NPV_($m)_Avg = NPV ($m) Avg
+EBITDA_(Yr_1$m) = Avg EBITDA (Yr 1 $m) Avg
+EPC_Cost_Avg = EPC Cost Avg
+dev_Cost_Avg = Dev Cost Avg
+other_Cost_Avg = Other Cost Avg
+total_Installed_Cost_Avg = Total Installed Cost Avg
+internal_Dev_Fee_% = Internal Dev Fee %
+avg_Docs_Avg = Docs
+avg_Open_Tasks = Avg Open Tasks
+
+offtake = Offtake
+output_mwdc = Output (MWdc)     
+portfolio_cost = Portfolio Cost   
+
+uploaded_on = Uploaded on 
+mfms = M-FMS
+download_fms_file = Download FMS file
+listed_date = Listed Date
+targeted_construction_commencement = Targeted Construction Commencement (if applicable)
+targeted_cod = Targeted COD
+project_functional_group = Project Functional Group
+greenfield = Greenfield
+distributed_generation = Distributed Generation
+utility = Utility
+other = Other
+state_letter_abbreviation = State (2-letter abbreviation)
+off_take_secured = Off-take Secured
+all = All
+yes = Yes
+no = No
+select_table_row = Select Table Row
+originator = Originator
+internal_pm = Internal PM
+
+include_inactive = Include Inactive
+originated_by_quarter = Originated by Quarter
+projected_by_cod = Projected By COD
+
+download_attached_file = Download attached file
+participants_participate_e-mail = Participants will be able to participate via e-mail only
+conversation_participants = Conversation Participants
+subcategory = Subcategory
+execution_date = Execution Date
+internal_only = Internal Only
+link_assumption = Link Assumption(s)
+key_terms = Key Terms
+document_filter_list = Document Filter List
+select_file_replace = Select a file to replace existing
+apply_projects_added = Apply to projects added
+within_last_0_months = Within last 0 months
+
+req = REQ
+select_saved_view = Select saved View
+ratefinder = RateFinder
+pricefinder = PriceFinder
+charts_display_summarypage = Charts to display on Summary page
+select_charts_below = Please select any two charts from below
+configure = Configure
+global_lists = Global Lists
+lists_filter_list = Lists Filter List
+list = LIST
+shared_projteam = Shared (Project Team)
+internal_organization = Internal (Organization only)
+private_user = Private (User only)
+
+thankyou_interest_registering = Thank you for your interest in registering with
+as_project_originator = as a project originator
+fill_form_account_created_setup = Please fill out this form and we will get your account created and setup for you
+company_information = Company Information
+company_name = Company Name
+primarycontact_at = Who is your primary contact at
+input_primarycontact = Please input the primary contact at
+organization_interfaces = your organization interfaces with when originating projects
+organization_type = Organization Type
+epc = EPC
+developer = Developer
+broker = Broker
+manufacturer_supplier = Manufacturer/Supplier
+host = Host
+select_organization_firm = Please select the type of organization best represents your firm
+prequalification = Prequalification
+introduced_project_past = Have you introduced a project in the past to
+operating_history = Operating History (Years Incorporated)
+largest_completed_project = Largest Completed Project
+number_completed_installations = Number of Completed Installations
+enter_totalcontractvalue_$USD = Please enter the total contract value in $ USD
+dun_bradstreet = Dun & Bradstreet (D&B) Rating
+osha_experience_modifier_rating = OSHA Experience Modifier Rating (EMR)
+bond_rate = Bond Rate ($USD/1000)
+user_registration = User Registration
+primary_user's_name = Primary User's Name
+primary_user's_email = Primary User's Email
+first = First
+last =  Last
+phone= Phone
+edit_document = Edit Documents
+
+error_in_upload = error in upload
+permissions_saved_successfully = Permissions saved successfully
+failed_save_permissions = Failed to save Permissions
+failed_update_comment = Failed to update comment.
+comment_deleted_successfull = Comment deleted successfully.
+sure_delete_comment = Are you sure, you want to delete this comment?
+failed_create_conversation = Failed to create conversation.
+sure_delete_conversation = Are you sure you want to delete this Conversation?
+fill_conversation_subject = Please provide a subject for your message.
+fill_conversation_message = Please provide a message for your recipient(s).
+failed_update_conversation = Failed to update conversation.
+conversation_delete_successfully = Conversation deleted successfully.
+file_allowed = The type of file is not allowed
+error_in_upload = error in upload
+
+
+col_name = Name
+col_client = Client
+col_listed = Listed
+col_goal = Goal
+col_primary = Primary
+col_status = Status
+col_stage = Stage
+col_sCScore = SCScore
+col_mScore = Norstar
+col_CS = CS
+col_E = E
+col_N = N
+
+project_update_request=Calculate
+project_request_evaluation=Audit Norstar
+
+organization_type = Organization Type
+
+is_fms_impact = Is FMS Impact
+linked_assumption = Linked Assumption
+
+cat_sequence=Category Sequence
+assumption_sequence=Assumption Sequence
+bulk_update = Bulk Edit
+proceed = Proceed
+previous = Previous
+bulk_manage_participant = Bulk Manage Participants
+remove = Remove
+bulk_search_internal_participants = Add/Remove Participants
+manage_bulk_project_access = Manage participants access to the project
+batch_calculate = Batch Calculate
+
+bulk_calculate = Bulk Calculate
+copy_demo_organization = Copy Demo Organization
+
+help_label = Enter label that will show up as the Field Name in the Details tab.  This is searchable in that tab by any key word, but should also be as short as possible for simplicity.
+help_description = Enter larger description to support Label name if unclear.  No limit to describing functionality.
+help_unit = Provides user a format description of the input in the Details tab.  Ex:  For a % input, enter \'%\' here.  Without entering this, a user will simply see a blank field in the Details tab with no clarity on what format to input.  The % sign alerts a user to enter \'8.0\' for 8% rather than \'0.08'\.
+help_field_type = Choose what type of field this should be.\'Multi-Select\' allows a user to choose multiple options from a pick list. \'Select\' provides a drop down for choosing one option only.  \'Text\' is a basic field that allows input of anything. \'Numeric\' prevents users from entering anything that is not a number. \'Date\' will provide a calendar for users to choose. \'Yes/No\' display input values in text and it sends value as \'1/0\' to FMS respectively.
+help_help_text = Any text entered here will show up in the \'?\' box next to this assumption in the Details tab to provide guidance to users on how to utilize this field.
+help_minval = Users cannot input numeric values lower than provided min value.
+help_maxval = Users cannot input numeric values higher than provided max value.
+help_defaultval= When creating a new project, this field will be pre-populated with the value entered here.  The only exception is an Organization Default that would override this value when a project is solicited to another entity.
+help_selectoptions =If Field Type is \'Multi-Select\' or \'Select\', enter the choices for selection here.  Fields should be separated by a comma.  Be careful to include spacing that coincides with the underlying excel model; ex:  If a selection in excel has options for \'Yes\' and \'No\', then these should be entered into the pick list as \'Yes,No\' with no spacing (a space after the comma would effectively be \'No\' which does not match the excel field and will be an error).
+help_notes = Include any further helpful notes here to clarify how to utilize this assumption.
+help_refname = This is the Reference Name of this field in Excel and the larger database structure. If an Input or Output in the underlying Excel model does not have a Reference Name, it will not be connected to Mercatus or display anywhere.  The Reference Name must match exactly between Excel and this entry.
+help_mappedrefname = This is the Mapped Reference Name. See reference name help for more details. 
+help_globalfield = Check this box if this field is \'Global\'
+help_outputfield = Check this box if this field is an \'Output\', meaning the value of this field is derived using the Inputs and calculations of the underlying Excel model.  If checked and a user pushes \'Calculate\', this field will return a value from the excel model rather than send a value to the excel model.  Ex:  For \'NPV\', check this box to ensure the value is returned as a result of the calculations of the model.
+help_ignoreupdate = When checked, respective assumption gets ignored when its value is returned from model calculation.
+help_isrequried = If checked, this field will have a red \'REQ\' listed next to it in the Details tab.  A user cannot push \'Calculate\' without this field being complete and will receive an alert that directs the user toward a specific input that is missing.
+help_portfolioconsolidation =Determines how this assumption will be consolidated within a portfolio if the project is selected for inclusion.  A user can select as many projects as desired for a portfolio, and when this occurs each assumption will be consolidated.  Ex:  If 5 projects are selected, the project costs could be consolidated using \'Weighted average (cost * capacity) Sum of all values\' while the Off-taker Name could be consolidated using \'first input having max count'\, as these are different field types and need separate consolidation outputs.
+help_portfolioconsolidation_refname =Determines how this assumption will be consolidated within a portfolio if the project is selected for inclusion.  A user can select as many projects as desired for a portfolio, and when this occurs each assumption will be consolidated.  Ex:  If 5 projects are selected, the project costs could be consolidated using \'Weighted average (cost * capacity) Sum of all values\' while the Off-taker Name could be consolidated using \'first input having max count'\, as these are different field types and need separate consolidation outputs.
+help_viewableby =Who can view this assumption?  Pyramids from top down, meaning if \'Developer\' is chosen, the Developer and any other Org Type can see this assumption; however if \'Financier\' is chosen, then Developer and External Org Types can not see this assumption. \'Developer\' refers to the orginating entity, or the entity that solicited this project, while \'Financier\' refers to the entity that received the solicited project and is reviewing it.
+help_editableby = Who can edit this assumption?  Pyramids from top down, meaning if \'Developer\' is chosen, the Developer and any other Org Type can edit this assumption; however if \'Financier\' is chosen, then Developer and External Org Types can not edit this assumption.  \'Developer\' refers to the orginating entity, or the entity that solicited this project, while \'Financier\' refers to the entity that received the solicited project and is reviewing it.
+help_assumptionlevel=When marked \'PROJECT\' then assumption input left blank when New Project created, when \'GLOBAL\' then assumption input uses Mercatus Default when New Project created, unless Client Default available, when \'CLIENT\' then assumption input uses Client Default when New Project created (this trumps Mercatus Defaults). For custom organizations this is always marked as \'PROJECT\'
+help_readonly =When checked, respective assumption becomes uneditable on details screen. 
+help_configonly =When checked, respective assumption becomes available for reporting in Deal Room.
+help_usedbyanalytics = Indicates assumption is used by Analytics, if selected, management of assumption by users will be restricted. 
+help_fmsimapct = If checked, this field will have a ___ icon listed next to it in the Details tab, indicating to a user that this field has an impact on the underlying financial model.  Helpful to track specifically which fields effect calculations and which fields are more pipeline related.
+help_metric = Shows the width of this assumption column when used for reporting in the Deal Room.  Ex:  for assumptions with longer entries or text entries, may want to utilize larger number here to ensure the width for reporting is formatted sufficiently.
+help_fieldformat = How the assumption is viewed when scanning the Details tab.  Ex:  \'#.##\' could be used for a user to view only \'1.05\' as a numeric field, for example.  The actual value here could be \'$1.046732199\', but it is rounded based on formatting listed in \'Field Precision\' below.
+help_fieldprecision =How many digits are available for entry.  Ex:  \'14\' suggests a user can enter up to 14 digits for a numeric value or decimal placing; however the user will only view the assumption with the format listed in \'Field Format\' above.  See example there for more context.															
+help_header =Enter \'Header\' text which will show up for this assumption when including it as a column for reporting in the Deal Room.  Used for abbreviating long assumptions from the Details tab to ensure simple formatting in Deal Room.  Ex:  \'Off-take Rate post TOD Adjustments\' in Details tab could simply be \'Offtake Rt ($ / kWh)\' for simplicity; user gets full context through Details tab.
+help_displayunit=Provides user a format description of the input in the Deal room column.  Ex:  For a % input, enter \'%\' here.  Without entering this, a user will simply see a blank field in the Details tab with no clarity on what format to input.  The % sign alerts a user to enter \'8.0\' for 8% rather than \'0.08\'.
+help_category=This field displays all the available categories, to move assumption to another category user can use this drop down.
+help_linkedassumption=Field shows assumption which next to selected assumption as an option for child assumption, when user select any assumption here then that assumption is displayed as child assumption on Details screen. This field will be disabled for invalid cases.
+help_commonlyused = When checked, respective assumption will be available in list of Commonly used assumptions for reporting on Deal Room.
+help_calculated = Indicates if this assumption should use a formula for calculation
+help_formula = The formula used for calculation
+
+copy_organization = Copy Organization
+select_org_error = Please select an organization
+customize_summary = Customize Summary
+model_delete = Are you sure you want to delete the selected model?
+
+column_limit = You have reached column limit. Maximum number of columns : 
+expense_summary = Expense Summary
+expense_details = Expense Details
+budget = Budget
+add_expense = Add Expense
+add_new_expense = Add New Expense
+add_actual_expense = Add Actual Expense
+edit_committed_expense = Edit Committed Expense
+edit_actual_expense = Edit Actual Expense
+reference_id = Reference Id
+expense_type = Expense Type
+amount = Amount
+category_name = Category Name
+expense_type = Expense Type
+expense_category =Expense Category
+expense_categories = Expense Categories
+settings = Settings
+add_category = Add Category
+expense_types = Expense Types
+add_type = Add Type
+subtract_committed = Subtract Committed expenses from Planned column.
+subtract_actual = Subtract Actual expenses from Planned column.
+add_category_description = Add Categories for sub-totaling expense types. For example, G&A or Travel. These categories will only appear in the summary table of expenses. Users will not be able to enter expenses directly into these categories.
+add_expense_description = Add Expense types that users will apply to project expenses. For each expense type select the expense category that it will be included in for summary reporting.
+expense_settings_error = Error occurred while retrieving expense settings.
+expense_summary_error = Error occurred while retrieving expense summary.
+project_expenses_error = Error occurred while retrieving project expenses.
+expense_name_valiadtion = Please enter Expense Name.
+expense_date_valiadtion = Please enter valid Expense Date.
+expense_type_valiadtion = Please enter Expense type.
+expense_amount_valiadtion = Please enter valid Expense Amount.
+expense_status_valiadtion = Please enter Expense Status.
+expense_category_validation = Please select expense category.
+expense_valiadtion = Fields marked with * are mandatory.
+expense_subtraction_alert = Expense amount will be subtracted from planned amount in summary table. \nDo you want to continue?
+expense_not_subtracted_alert = Expense amount is not subtracted from summary table. Please consider updating Planned amount.\nDo you want to continue?
+expense_actual_subtracted_alert = Expense amount will be subtracted from Committed amount in summary table. \nDo you want to continue?
+add_expense_error = Error occurred while adding expense.
+add_expense_message = Expense added successfully.
+planned = Planned
+committed = Committed
+actual = Actual
+total = Total
+expense_category_name_validation = Please enter Category Name.
+expense_category_unique_validation = Please enter unique Expense Category Name.
+expense_type_name_validation = Please enter Expense Type Name.
+expense_type_unique_validation = Please enter unique Expense Type Name.
+settings_updated_message = Settings updated successfully.
+save_settings_error = Error occurred while updating settings.
+expense_category_save_message = Expense Category saved successfully.
+expense_category_save_error = Error occurred while saving expense category.
+expense_type_save_message = Expense Type saved successfully.
+expense_type_save_error = Error occurred while saving expense type.
+category_delete_message = Expense Category deleted successfully.
+category_delete_error = Error occurred while deleting Category.
+delete_category_confirm = Are you sure you want to delete category?
+delete_expense_confirm = Are you sure you want to delete expense? It will update summary table.
+delete_expense_message = Expense deleted successfully.
+delete_expense_error = Error occurred while deleting Expense.
+modify_subtract_setting_confirm = Expense summary will not be recalculated. Setting will be applicable henceforth. Do you want to continue?
+project_budget_error = Failed to retrieve Project Budget.
+expense_summary_message = Planned Amount updated successfully.
+expense_planned_error = Failed to save Planned amount for project.
+expense_budget_message = Project budget updated successfully.
+expense_budget_error = Failed to save Project Budget.
+expense_number_validation = Please enter valid amount.
+do_not_show = Do not show this again.
+expense_immovable_column = Type and Planned column cannot be reordered.
+
+#Asset home page
+assets_dashboard = Assets Dashboard
+load_global_task_tile_error = Failed to load Global tasks.
+get_configuration_error = Failed to get configuration.
+configuration_update_message = Dashboard configuration updated successfully!
+configuration_update_error = Could not update dashboard configuration!
+
+#Preferences alerts
+user_added = User created successfully.
+user_updated = User updated successfully.
+notification_cofig_saved = Notification config data has been changed successfully.
+delete_user_confirm = Are you sure you want to delete user
+user_deleted = User deleted successfully.
+user_delete_failed = Failed to delete user.
+permissions_updated = Permissions saved successfully.
+permissions_update_failed = Failed to save Permissions.
+user_info_updated = User Basic Info updated successfully.
+password_saved = User Password has been changed successfully.
+password_update_failed = Error updating user password.
+password_length_validation = Password must be at least 8 chars, contain at least 1 capital letter, 1 number and 1 symbol.
+password_validation = Your password must contain 2 of the following (letters, numbers, or special characters)
+restore_validation = Please select one or more items to restore.
+restore_confirm = Are you sure you want to proceed?
+project_restored = Restore was successful.
+project_restore_failed = Error occurred while attempting restore.
+activate_assumption_confirm = Are you sure you want to activate the assumption
+deactivate_assumption_confirm = Are you sure you want to deactivate the assumption
+assumption_added = Assumption created successfully. It may take some time for the field to be available on all projects.
+assumption_updated = Assumption updated successfully.
+assumption_save_failed = Failed to save assumption.
+assumption_deleted = Assumption deleted successfully.
+assumption_delete_confirm = Are you sure you want to delete assumption
+assumption_delete_failed = Failed to delete assumption.
+assumption_validation = Please select a Category where you would like to add the Assumption.
+assumtion_activated = Assumption activated successfully.
+assumption_deactivated = Assumption deactivated successfully.
+assumtion_activate_failed = Failed to activate Assumption.
+assumtion_deactivate_failed = Failed to deactivate Assumption.
+analytics_assumption = This assumption is linked with your Analytics and cannot be edited. Please contact your Mercatus Administrator at support@gomercatus.com to edit this assumption.
+assumption_category_validation = Please select a Category.
+assumption_sequence_saved = Assumption Sequence updated successfully.
+category_sequence_saved = Sequence updated successfully.
+sequence_failed = Error while updating sequence.
+category_added = Category created successfully.
+category_updated = Category updated successfully.
+category_save_failed = Failed to save category.
+category_deleted = Category deleted successfully.
+category_delete_confirm = Are you sure you want to delete category
+category_delete_failed = Failed to delete category.
+activate_category_confirm = Are you sure you want to activate the category
+category_activated = Category activated successfully.
+category_activate_failed = Failed to activate Category.
+deactivate_category_confirm = Are you sure you want to deactivate the category
+category_deactivated = Category deactivated successfully.
+category_deactivate_failed = Failed to deactivate category.
+
+#Conversations tab
+conversation_filter = Conversation Filter updated successfully.
+conversation_filter_failed = Failed to update conversation filter.
+participant_added = Participant updated successfully.
+participant_failed = Failed to update Participants.
+
+#Projects
+find_tax_equity_investment = Make sure to fill in Target Flip Return in the Partnership Flip section so Mercatus knows what to solve for!  Also, Mercatus is smart, but refuses to use random guesses for unknown items.  Defaults will be utilized where suggested, but please load as many assumptions as possible for more accurate results.\n\nAre you ready to proceed?
+project_delete_confirm = Are you sure you want to delete this project?
+portfolio_delete_confirm = Are you sure you want to delete this portfolio?
+run_bulk_calculate_without_selecting_project = Please add at least one Project to the Bulk Calculate request.
+run_bulk_calculate = Bulk Calculation request submitted successfully. You will be notified via email once the request is complete.    (System Admins may use the Calculation Queue Manager to track and optimize this process).
+bulk_manage_participant_without_selecting_project = Please add at least one Project to the Bulk Participant Edit request.
+bulk_manage_participants = Project Participant(s) updated successfully.
+create_portfolio = Project portfolio created successfully.
+lock_project = All assumptions on the Details tab have been locked and can no longer be edited by any users.  Please push the (now closed) lock button again to unlock the assumptions for further edits to this project.
+export_pdf_for_all_projects = Your Pipeline Report request is being exported into a PDF.  It will include all projects currently loaded in the Deal Room, as none are specifically selected.
+get_investment_memo = Your Investment Memo is complete and available for download in the Documents tab (search Project ID .
+details_sensitivity = Sensitivity Requests utilize the current metrics input into the Sensitivity section to run best and worst-case scenarios on the project's financial returns.  This will populate the tornado chart on the Summary tab.  You may continually adjust and rerun as necessary.\n\nAre you ready to proceed?
+details_sensitivity_success = Sensitivity Request complete!  Please see the tornado chart on the Summary tab to view the results.
+details_ratefinder_success = Rate Found! Please refer to the Details tab to see the results.
+detail_pricefinder_success = Price Found! Please refer to the Details tab to see the results.
+norstar_audit = You have requested an Norstar Audit, which is Mercatus\u2019 formal project evaluation process.  All information and documents will be reviewed, organized, and assessed for a verified Norstar project rating within 48 hours\u2026if you provide it, Mercatus reviews it!  You will be notified upon completion of the audit, and provided a detailed review of the project's risk and key due diligence items.\n\nAre you ready to proceed?
+configure_project_summary = Your Project Summary View has been successfully reconfigured.
+proceed_without_selecting_assumption = Please select at least one assumption to change.
+save_bulk_edit = Your Bulk Update request is running in background. It may take few minutes to complete.
+restore_model = Previous Model Version restored successfully.  Future Calculations will run through this file.
+calculate_project = Your project has successfully calculated.
+document_download_all = Your request to download documents has been queued for processing.\n\nOnce complete, you will receive an e-mail notification with a link to a downloadable ZIP file containing the requested documents.\n\nTypically this package is available within a few minutes.  Actual times vary depending on the number and size of documents in the request.
+single_document_delete = Are you sure you want to delete the selected document?
+use_custom_model = You have chosen to upload a Custom - or "Divergent" - Model, which means that all Calculations will now run through this file rather than the Base Model.  Please contact your System Administrator if you did not intend to upload a Custom Model.
+model_status_updated = Model Status to be used updated successfully.
+model_status_failed = Failed to update model status.
+help_wf_project_create = When checked, respective assumption becomes available in creation popup.
+help_wf_custom_field = When checked, respective assumption will mapped to workfront custom form.
+bulk_edit_without_selecting_projects = Please select at least one project to bulk edit.
+bulk_manage_paticipants_without_selecting_projects = Please select at least one project to manage participants.
+exclude_copy_project = Leave blank when copying project
+exclude_copy_project_help = If checked, values stored in this assumption will not be added to the new project when using the copy project function, and will instead show up as blank in the new deal.
+ssoInd_lbl = Single Sign On
+alphabetize_ind = Alphabetical Order
+alphabetize_ind_help = If selected, the field values will be displayed in alphabetical order. If not selected then they will display in order entered.
+
+lock_the_system = Lock the System
+unlock_the_system = Unlock the System
+system_is_locked_for_administrative_purposes = System is locked for administrative purposes.
+system_is_currently_locked = System is currently locked
+this_operation_is_not_allowed = This operation is not allowed when the system is locked.
+calculation_in_progress.title = Initial configuration in progress
+calculation_in_progress.msg = Changes are not allowed until initial configuration is complete.
+calculation_in_progress.complete.title = Calculation complete
+calculation_in_progress.complete.msg = The calculation is now complete and is now unlocked.  Click this message to refresh display.
+
+# Tasks
+invalid_predecessor_input = Please enter valid TaskID<br/>For Finish to Start, enter taskID followed by \"FS\" or blank<br/>For Start to Start, enter taskID followed by \"SS\" <br/>For Start to Finish, enter taskID followed by \"SF\"<br/>For Finish to Finish, enter taskID followed by \"FF\"<br/>For Offset, enter \"<b>+</b>\" or \"<b>-</b>\" followed by offset value at the end
+invalid_predecessor_cyclic = Invalid Predecessor, This task is a predecessor of entered taskID
+invalid_predecessor_itself = Task cannot be assigned as predecessor to itself.
+invalid_task_duration = Please enter decimal value<br/>To log Hours, enter Duration followed by \"h\"
+invalid_predecessor_same_type = Please enter same type of predecessors
+invalid_predecessor_multiple_occurrences = Please remove multiple occurrences of Task
+predecessor_placeholder = Separate using commas
+task_predecessor_tooltip = Allows a user to indicate 1 or many predecessors for  the task.  User can enter number followed by 2 characters that determine the dependency type.  FS (finish to start) is the default.  FF (finish to finish), SS (start to start), SF (start to finish).User  can enter multiple predecessors by using commas to separate.User can enter a + or - Integer to indicate a lag.  (e.g. FS + 3).
+task_name_tooltip = The name of the task.  Appears in the task table and Gantt chart.
+task_type_tooltip = Indicates the task type - either \"Task\" or \"Miltestone\".
+task_description_tooltip = The description of the task.
+task_percentage_complete_tooltip = The percentage of the task that is complete.
+task_priority_tooltip = Indicates the task priority.Can be Very High, High, Medium or Low.
+task_assignee_tooltip = The resource or resources assigned to the task.Can be individual, team or placeholder.
+task_approval_tooltip = The resource or resources to approve the task.Can be individual, team or placeholder.
+task_document_required_tooltip = Indicates whether the task requires a document in order to be marked complete (100% in the percentage completion field).Can be \"Y\" or \"N\"
+task_planned_duration_tooltip = The Planned Duration of the task.Defaults to days.Can enter time as Hours.
+task_planned_start_tooltip = The Planned Start Date of the task.The date is shown in the user's time zone.
+task_planned_end_tooltip = The Planned Completion Date of the task.The date is shown in the user's time zone.
+projected_duration_tooltip = This is Projected Duration field.
+projected_start_tooltip = This is Projected Start Date field.
+projected_end_tooltip = This is Projected End Date field.
+task_actual_duration_tooltip = The Actual Duration of the task.Defaults to days.Can enter time as Hours.
+task_actual_start_tooltip = The Actual Start Date of the task.The date is shown in the user's time zone.
+task_actual_end_tooltip = The Actual Completion Date of the task.The date is shown in the user's time zone.
+filter_icon_tooltip=Filter
+group_icon_tooltip=Group
+undo_icon_tooltip=Undo
+indent_icon_tooltip=Indent
+outdent_icon_tooltip=Outdent
+ganttList_icon_tooltip=Toggle View
+taskAction_icon_tooltip=Task Action
+document_name = Document Name
+task_category_tooltip = Indicates the category of task.
+task_category_header = Task Categories
+task_category_name = Name
+task_category_count = Task Count
+task_category_new = New Task Category
+task_category_edit = Edit Task Category
+
+#Watermarks
+watermark_content_tooltip = You can enter text or embed the following variables into the<br> watermark that can appear inside a PDF document.<br><br> - $Date <br> - $Time <br> - $User <br> - $Page# <br> - $PageTotal <br> Use Assumption picker to insert assumption.
+watermark_picker_title = Choose Assumption
+
+save_buffer = Save Buffer
+on_track = On Track
+behind = Behind
+at_risk = At Risk
+status_on_track_help = All open task have projected end date + buffer >= today
+status_behind_help = There are open tasks not on the critical path where projected end date + buffer < today
+status_at_risk_help = There are open tasks on the critical path where projected end date + buffer < today
+
+abandon_project = Abandon Project
+select_abandon_reason = Select Abandon Reason
+
+#Merge Documents
+merge = Merge
+continue = Continue
+ignore_continue = Ignore and Continue
+contact_admin =  Please contact your system administrator.
+tags_empty = Blank field value in the document.
+tags_missing_info =  is missing in project details.
+tags_empty_info = is blank in project details.
+asset_tags_missing_info = is missing in asset details.
+asset_tags_empty_info = is blank in asset details.
+no_issues = No issues found.
+no_of_issues = number of issues found.
+
+#Assets Management
+assetsInd_lbl = Assets Management
+asset_delete_confirm = Are you sure you want to delete this asset?
+commitment_name_tooltip = The name of the commitment.  Appears in the commitment table and Gantt chart.
+commitment_type_tooltip = Indicates the task type.
+commitment_priority_tooltip = Indicates the commitment priority.Can be Very High, High, Medium or Low.
+commitment_description_tooltip = The description of the commitment.
+commitment_percentage_complete_tooltip = The percentage of the commitment that is complete.
+commitment_assignee_tooltip = The resource or resources assigned to the commitment.Can be individual, team or placeholder.
+commitment_approval_tooltip = The resource or resources to approve the commitment.Can be individual, team or placeholder.
+commitment_planned_duration_tooltip = The Planned Duration of the commitment. Defaults to days.Can enter time as Hours.
+commitment_actual_duration_tooltip = The Actual Duration of the commitment. Defaults to days.Can enter time as Hours.
+commitment_planned_start_tooltip = The Planned Start Date of the commitment. The date is shown in the user's time zone.
+commitment_actual_start_tooltip = The Actual Start Date of the commitment. The date is shown in the user's time zone.
+commitment_planned_end_tooltip = The Planned Completion Date of the commitment. The date is shown in the user's time zone.
+commitment_actual_end_tooltip = The Actual Completion Date of the commitment. The date is shown in the user's time zone.
+document_name_tooltip = The document name that originated this task or commitment. For example, 'PPA'.
+rec_frequency_tooltip = This is commitment frequency.
+rec_occurrences_tooltip = Number of occurrences.
+due_date_tooltip = This is planned due date for commitment.
+asset_creation_ind = Asset Creation Field
+commitmentAction_icon_tooltip=Commitment Action
+help_assets_portfolioconsolidation = Determines how this assumption will be consolidated within a portfolio if the asset is selected for inclusion. A user can select as many assets as desired for a portfolio, and when this occurs each assumption will be consolidated. Ex: If 5 assets are selected, the asset costs could be consolidated using \'Weighted average (cost * capacity) Sum of all values\' while the Off-taker Name could be consolidated using \'first input having max count'\, as these are different field types and need separate consolidation outputs.
+asset_summary = Asset Summary
+performance_timeframe = Timeframe
+performance_aggregation = Aggregation Type
+performance_aggregation_source = Aggregate From
+performance_reporting = Reporting Type
+performance_line_classification = Line Classification
+performance_output_field = Is Output Field
+performance_is_fms_impact = Is FMS Impact
+performance_header_reference_name = Header Reference Name
+help_performance_output_field = When this box is selected, after calculation, the system will save the values that are mapped to the assumption's reference name from the model.
+help_performance_is_fms_impact = When this option is selected, the system will use this assumption as an input to the Financial Model, when the reference name of the field is in the model.
+help_performance_header_reference_name = The Header Reference Name will be used to by the system at time of calculation to locate the header in an Excel model that will be used as reference for the performance assumption. At calculation, the system will match the header value to the value in the "Date" field for the performance assumption to determine where to input/output data from the Excel model.
+help_performance_timeframe = Frequency of value updation
+help_performance_aggregation = Aggregation logic for accumulating values over time
+help_performance_aggregation_source = Assumption used for aggregation
+help_performance_reporting = Type of value
+help_line_classification = The type of class this assumption belongs to
+performance_type = Performance Type
+
+investor_delete_confirm = Are you sure you want to delete this investor?
+
+#Conditional Assumption
+field = Field
+type = Type
+search = Search
+new = New
+conditional = Conditional
+conditional_select = Conditional Select
+conditional_hidden = Conditional Hidden
+hidden_field = Hidden field(s)
+
+#MyTasks
+access_projects_tab_error = You do not have permission to access Projects.
+access_assets_tab_error = You do not have permission to access Assets.
+access_tasks_tab_error = You do not have permission to access Tasks.
+access_investors_tab_error = You do not have permission to access Investors.
+
+get_document_url_error = Failed to get Download URL.
+get_locked_document_download_error = File cannot be downloaded , it is locked by
+document_download = Document Download
+document_watermark_non_pdf = Watermarks will apply to PDF files. Non-PDF files will be uploaded, but not watermarked.
+
+#Contacts
+### NOTE: These properties are duplicated in main/resources/fields.properties
+# Any updates here should also be updated in the other file.
+contact_type = Contact type
+contact_typeDescription = E.g. Vendor, Investor, Operator, Employee
+contact_name = Name
+contact_givenName = First Name
+contact_additionalName = Middle Name
+contact_familyName = Last Name
+contact_email = Email Address
+contact_jobTitle = Job Title
+contact_companyName = Company Name
+contact_telephone = Phone Number
+contact_streetAddress = Address
+contact_city = City
+contact_countrySubdivision = State
+contact_postalCode = Zip Code
+contact_country = Country
+
+contact_created = Contact created successfully!
+contact_updated = Contact updated successfully!
+contact_deleted = Contact deleted successfully!
+
+contact_entity_assigned = Selected contacts have been successfully assigned!
+contact_entity_removed = Selected contacts have been successfully removed!
+
+access_contacts_tab_error = You do not have permission to access Contacts
+contacts_error_loading = Error loading Contacts list!
+contacts_error_save_assignment = Failed to save contact(s) assignment
+contacts_error_delete_assignment = Failed to delete contact(s) assignment
+contacts_error_add_contact = Failed to add contact
+contacts_error_update_contact = Failed to update contact
+contacts_error_delete_contact = Unable to delete contact that is in use.
+
+contacts_action_tooltip = Contacts Action
+
+contacts_add = Add Contact
+contacts_edit = Edit Contact
+contacts_delete = Delete Contact(s)
+contacts_assign = Manage Contacts
+contacts_export = Export to CSV
+
+contacts_project_role = Role
+
+contacts_manage = Manage Contacts
+
+contacts_missing_given_name = Please fill in First Name
+contacts_missing_family_name = Please fill in Last name
+contacts_missing_email = Please fill in Email Address
+contacts_not_an_email = Email validation failed
+
+contacts_delete_confirm = Are you sure you want to delete this contact?
+
+contacts_filter = Contacts filter
+contacts_filter_created = New filter successfully created and activated
+
+
+esign = Document eSign
+esign_gosign_customer_code = GoSign Customer Code
+esign_vendor_user_id = Sender User Id
+esign_status_draft = Draft
+esign_status_in_progress = In Progress
+esign_status_worked = Worked
+esign_status_to_reject = To Reject
+esign_status_rejected = Rejected
+esign_status_expired = Expired
+esign_status_stored = Archived
+esign_status_cancel = Cancelled
+esign_status_unknown = Unknown
+esign_status_new = New
+esign_status_to_confirm = To Be Confirmed
+esign_status_to_start = To Start
+esign_status_cancelled = Cancelled
+
+investor_portal_subdomain = Investor Portal Subdomain
+
+entity_folder_share = Share folder
+entity_folder_share_success = Folder shared successfully
+entity_folder_unshare_success = Folder un-shared successfully
+entity_folder_share_error = Folder Sharing Error

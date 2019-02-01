@@ -1,0 +1,488 @@
+tab_yourHub = Your Hub
+tab_projects = Projects
+tab_analysis = Analysis
+tab_preferences = Preferences
+tab_conversation = Conversations
+tab_admin = Admin
+administration = Administration
+manage_sequence = Manage Sequence
+assumption_sequence_manage = Assumption Sequence Management
+category_sequence_manage = Category Sequence Management
+macro_details = Macro Details
+
+start_new_conversation = Start new conversation
+ping_my_network = Ping my Network
+export_as_pdf = Export as PDF
+tab_filter = Filter
+tab_search = Search
+tab_submit = Submit
+export = Export
+
+subject = Subject
+project = Project
+Created_by = Created By
+participants = Participants
+date = Date
+replies = Replies
+action = Action
+actions = Actions
+comments = Comments
+
+edit = Edit
+delete = Delete
+
+back_to_conversation_list = Back to Conversation List
+post_a_response = Post a Response
+post_comment = Post Comment
+manage_participants = Manage Participants
+manage_portfolio = Manage Portfolio 
+create_converstion = Create Conversation
+
+customize_project_list = Customize Project List
+close = close
+select_metrics = Select Metrics
+free_space_remaining = Free space remaining:
+cancel = Cancel
+ok = OK
+deal_room = Deal Room
+solicited_deals = Solicited Deals
+create_project_portfolio = Create Project Portfolio
+create_project = Create Project
+copy_project = Copy Project
+solicit_deal = Solicit Deal
+filter_project_list = Filter Project List
+select_metric = Select Metric
+choose_property = Choose property
+equals = Equals
+
+active_filters = Active Filters
+add_filter = Add Filter
+autocomplete = Autocomplete
+
+analytics = Analytics
+pipeline_performance = Pipeline & Performance
+advanced = Advanced
+gooddata = GoodData
+organization = Organization
+assumptions = Assumptions
+user = User
+
+organization_users = Organization & Users
+project_admin = Project Admin
+fms = Model
+m_fms = M-FMS
+details_management = Details Management
+roles_management = Roles Management
+
+view_project_details = View Project Details
+project_quick_view = Project Quick View
+metric = Metric
+value = Value
+mercatus_evaluation = Mercatus Evaluation
+view_more = view more
+project_notes = Project Notes
+
+view_details = View Details
+create_portfolio_report = Create Portfolio Report
+portfolio_quick_view = Portfolio Quick View
+portfolio_notes = Portfolio Notes
+
+lock_project_details = Lock Details
+active = Active
+requires_client_review = Requires client review
+last_evaluation_run = Last evaluation run
+refresh = Refresh
+update = Update
+request_evaluation = Request Evaluation
+sections = SECTIONS
+project_status = Status
+percent_completion = Percent Completion
+
+portal_settings = Portal Settings
+organization_logo = Organization Logo
+customer_portal_status = Customer Portal Status
+portal_address = Portal Address
+internal_users = Internal Users
+default_assumptions = Default Assumptions
+
+add/remove_internal = Add/Remove Internal
+search_internal_participants = Add Participants
+participants_access_project = Participants will have access to the project
+add_participant = Add Participant
+ext_participants = Invite External Participants
+limited_access_project = Participants will have limited access to the project
+project_participants = Project Participants
+enter_emailaddress = Enter email address(es) separate w/ commas
+
+name_portfolio = Name Portfolio
+name_projportfolio = Name Project Portfolio
+max_40_char = 40 characters max
+select_projects = Select Projects
+select_project_portfolio = Select projects to be included in portfolio
+add = Add
+delete_portfolio = Delete Portfolio
+
+project_name = Project Name
+save = Save
+select_project/portfolio = Select Project/Portfolio
+project/portfolio_wish_solicit = Please select the project or portfolio that you wish to solicit
+select_entity = Select Entity
+entity_solicit_project/portfolio = Select the entity to solicit the above project/portfolio
+
+create_new_list = Create new List
+newlist_from_template = New List from Template
+list_title = Give the list a title
+save_addtasks = Save & start adding tasks
+list_as_template = Save List as Template 
+active_tasks = Active tasks
+completed_tasks = Completed tasks
+move = Move
+save_changes = Save Changes
+add_new_item = Add a new Item
+enter_tasklabel = Enter task label
+add_tag = Add tag
+unassigned = Unassigned
+no_due_date = No Due Date
+
+personal_template = Personal Template(s)
+organization_template = Organization Template(s)
+search/create_new = Search or Create new
+existing_list_tags = Existing List Tags
+assign_item = Assign this item to
+person_notified = The person you select will be notified by email
+set_duedate = Set the due date
+
+add_user = Add User
+first_name = First Name
+last_name = Last Name
+email_address = E-mail Address
+telephone = Telephone
+password = Password
+retype_password = Re-type Password
+
+name = Name
+email = E-mail
+last_login = Last Login
+permission = Permission
+
+basic_info = My Basic Info
+organization = Organization
+old_password = Old Password
+new_password = New Password
+notifications = Notifications
+change = Change
+notifications_email = Receive System Notifications via e-mail?
+receive_notifications = How often would you like to receive notifications?
+assumption = Assumption
+default_value = Default Value
+format = Format
+
+default_assumption = Edit Organization Default Assumption
+assumption_name = Assumption Name
+format_units = Format(Units)
+
+fms_model_file = FMS Model File
+by = By
+upload_xls_file = Upload FMS Model xls file here
+
+new_organization = New Organization
+organization_name = Organization Name
+organization_unique_id = Organization Unique ID
+organization_desc = Organization Desc
+primary_user_firstname = Primary User First Name
+primary_user_lastname = Primary user Last Name
+primary_user_email = Primary User Email
+licenses = Licenses
+number_of_power = Number of Power
+number_of_lite = Number of Lite
+session_timeout  = Session Timeout (In Minutes)
+max_file_size  = Max upload file size limit (In MB)
+model_selection  = Model Selection
+co_brand = Co-Branding
+role = Role
+storage_service= Storage Service
+
+assumptions_management = Assumptions Management
+label = Label
+description = Description
+unit = Unit
+field_type = Field Type
+help_text = Help Text
+min_value = Min Value
+max_value = Max Value
+select_options = Select Options
+weight = Weight
+notes = Notes
+reference_name = Reference Name
+is_required = Is Required
+is_calculated = Is Calculated
+viewable_by = Viewable By
+editable_by = Editable By
+assumption_level = Assumption Level
+is_read_only = Is Read Only
+is_config_only = Is Config
+is_usedbyanalytics=Used By Analytics
+field_format = Field Format
+field_precision = Field Precision
+consolidation_portfolio = Consolidation for Portfolio
+consolidation_portfolio_refname = Consolidation Assumption
+min = Min
+max = Max
+custom_model_lbl = Custom FMS Model
+
+new_category = New Category
+category_name = Category Name
+category_desc = Category Desc
+order_no = Order No
+
+add_assumption = Add Assumption
+primary_account = Primary Account
+users = #Users
+projects = Projects
+networks = Networks
+permission = Permission
+add_role = Add Role
+role_name = Role Name
+role_desc = Role Desc
+
+previous = Previous
+next = Next
+info = info
+scoring_components = Scoring Components
+in_development = In Development
+quick_reference = Quick Reference
+financing = Financing
+construction = Construction
+proj_developmt_timeline = Project Development Timeline
+cash_flow = Cash Flow
+sensitivity = Sensitivity
+mercatus_evaluation = Mercatus Evaluation
+nosupport_html5canvastag = Your browser does not support the HTML5 canvas tag
+close = Close
+
+assumption_notes = Assumption Notes
+notes = Notes (Limit 255 characters)
+change_log = Change Log
+current_version = Current Version
+restore = Restore
+lists = Lists
+all_lists = See all lists
+comment_1 = 1 Comment
+discuss_item = Discuss this item
+add_comment = Add a comment
+template_name = Enter template name
+project_summary = Project Summary
+
+summary = Summary
+details = Details
+documents = Documents
+conversations = Conversations
+
+project_details = Project Details
+project_documents = Project Documents
+project_conversations = Project Conversations
+project_lists = Project Lists
+
+create_user = Create User
+assign_permissions = Assign Permissions
+create_assumption = Create Assumption
+create_category = Create Category
+edit_assumption = Edit Default Assumption
+create_organization = Create Organization
+create_role = Create Role
+edit_category = Edit Category
+edit_organization = Edit Organization
+
+enter_subject = Enter Subject
+locale = Locale
+edit_project_portfolio = Edit Project Portfolio
+unlock_project_details = Unlock Details
+
+download = Download
+document = Document
+category = Category
+sub_category = Sub Category
+flagged = Flagged
+internal = Internal
+
+changes_pending = Changes Pending
+complete = Complete
+
+refresh_data = Refresh Data
+last_updated = Last updated
+mw_dc = MW's (DC) 
+avg_project_size = Avg Project Size (MW DC)
+avg_mscore = Average Norstar
+avg_acquisition_cost = Avg Acquisition Cost ($/W)
+avg_npv = Avg NPV ($m)
+avg_ebitda = Avg EBITDA ($m)
+avg_unlevered_irr = Avg Unlevered IRR
+avg_closure_rate = Avg Closure Rate
+avg_time_closure = Avg Time to Closure (Days)
+total_mw_group = Total MW's by Functional Group (Originated by Quarter)
+total_projects_group = Total Projects by Functional Group (Originated by Quarter)
+pipeline_status = Pipeline by Current project Status
+
+#analytics data table
+row_label = *Row Label 
+total_Projects = Total Projects  
+total_mw = Total MWs
+mScore_Avg = Norstar Avg
+unlevered_IRR_Avg = Unlevered IRR Avg
+levered_IRR_Avg = Levered IRR Avg
+NPV_($m)_Avg = NPV ($m) Avg
+EBITDA_(Yr_1$m) = Avg EBITDA (Yr 1 $m) Avg
+EPC_Cost_Avg = EPC Cost Avg
+dev_Cost_Avg = Dev Cost Avg
+other_Cost_Avg = Other Cost Avg
+total_Installed_Cost_Avg = Total Installed Cost Avg
+internal_Dev_Fee_% = Internal Dev Fee %
+avg_Docs_Avg = Docs
+avg_Open_Tasks = Avg Open Tasks
+
+offtake = Offtake
+output_mwdc = Output (MWdc)     
+portfolio_cost = Portfolio Cost   
+
+uploaded_on = Uploaded on 
+mfms = M-FMS
+download_fms_file = Download FMS file
+listed_date = Listed Date
+targeted_construction_commencement = Targeted Construction Commencement (if applicable)
+targeted_cod = Targeted COD
+project_functional_group = Project Functional Group
+greenfield = Greenfield
+distributed_generation = Distributed Generation
+utility = Utility
+other = Other
+state_letter_abbreviation = State (2-letter abbreviation)
+off_take_secured = Off-take Secured
+all = All
+yes = Yes
+no = No
+select_table_row = Select Table Row
+originator = Originator
+internal_pm = Internal PM
+
+include_inactive = Include Inactive
+originated_by_quarter = Originated by Quarter
+projected_by_cod = Projected By COD
+
+download_attached_file = Download attached file
+participants_participate_e-mail = Participants will be able to participate via e-mail only
+conversation_participants = Conversation Participants
+subcategory = Subcategory
+execution_date = Execution Date
+executed = Executed
+internal_only = Internal Only
+link_assumption = Link Assumption(s)
+key_terms = Key Terms
+document_filter_list = Document Filter List
+select_file_replace = Select a file to replace existing
+apply_projects_added = Apply to projects added
+within_last_0_months = Within last 0 months
+
+req = REQ
+select_saved_view = Select saved View
+ratefinder = RateFinder
+pricefinder = PriceFinder
+charts_display_summarypage = Charts to display on Summary page
+select_charts_below = Please select any two charts from below
+configure = Configure
+global_lists = Global Lists
+lists_filter_list = Lists Filter List
+list = LIST
+shared_projteam = Shared (Project Team)
+internal_organization = Internal (Organization only)
+private_user = Private (User only)
+
+thankyou_interest_registering = Thank you for your interest in registering with
+as_project_originator = as a project originator
+fill_form_account_created_setup = Please fill out this form and we will get your account created and setup for you
+company_information = Company Information
+company_name = Company Name
+primarycontact_at = Who is your primary contact at
+input_primarycontact = Please input the primary contact at
+organization_interfaces = your organization interfaces with when originating projects
+organization_type = Organization Type
+epc = EPC
+developer = Developer
+broker = Broker
+manufacturer_supplier = Manufacturer/Supplier
+host = Host
+select_organization_firm = Please select the type of organization best represents your firm
+prequalification = Prequalification
+introduced_project_past = Have you introduced a project in the past to
+operating_history = Operating History (Years Incorporated)
+largest_completed_project = Largest Completed Project
+number_completed_installations = Number of Completed Installations
+enter_totalcontractvalue_$USD = Please enter the total contract value in $ USD
+dun_bradstreet = Dun & Bradstreet (D&B) Rating
+osha_experience_modifier_rating = OSHA Experience Modifier Rating (EMR)
+bond_rate = Bond Rate ($USD/1000)
+user_registration = User Registration
+primary_user's_name = Primary User's Name
+primary_user's_email = Primary User's Email
+first = First
+last =  Last
+phone= Phone
+edit_document = Edit Documents
+
+error_in_upload = error in upload
+permissions_saved_successfully = Permissions saved successfully
+failed_save_permissions = Failed to save Permissions
+failed_update_comment = Failed to update comment.
+comment_deleted_successfull = Comment deleted successfully.
+sure_delete_comment = Are you sure, you want to delete this comment?
+failed_create_conversation = Failed to create conversation.
+sure_delete_conversation = Are you sure you want to delete this Conversation?
+fill_conversation_subject = Please provide a subject for your message.
+fill_conversation_message = Please provide a message for your recipient(s).
+failed_update_conversation = Failed to update conversation.
+conversation_delete_successfully = Conversation deleted successfully.
+file_allowed = The type of file is not allowed
+error_in_upload = error in upload
+
+
+col_name = Name
+col_client = Client
+col_listed = Listed
+col_goal = Goal
+col_primary = Primary
+col_status = Status
+col_stage = Stage
+col_sCScore = SCScore
+col_mScore = Norstar
+col_CS = CS
+col_E = E
+col_N = N
+
+project_update_request=Calculate
+project_request_evaluation=Audit Norstar
+
+organization_type = Organization Type
+
+is_fms_impact = Is FMS Impact
+linked_assumption = Linked Assumption
+cat_sequence=Category Sequence
+assumption_sequence=Assumption Sequence
+bulk_update = Bulk Edit
+proceed = Proceed
+previous = Previous
+bulk_manage_participant = Bulk Manage Participants
+remove = Remove
+bulk_search_internal_participants = Add/Remove Participants
+manage_bulk_project_access = Manage participants access to the project
+batch_calculate = Batch Calculate
+
+bulk_calculate = Bulk Calculate
+copy_demo_organization = Copy Demo Organization
+
+copy_organization = Copy Organization
+customize_summary = Customize Summary
+exclude_copy_project = Leave blank when copying project
+exclude_copy_project_help = If checked, values stored in this assumption will not be added to the new project when using the copy project function, and will instead show up as blank in the new deal.
+ssoInd_lbl = Single Sign On
+
+alphabetize_ind = Alphabetical Order
+alphabetize_ind_help = If selected, the field values will be displayed in alphabetical order. If not selected then they will display in order entered.

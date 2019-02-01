@@ -1,0 +1,366 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< io.gatling:gatling-maven-plugin-demo >----------------
+[INFO] Building gatling-maven-plugin-demo 3.0.3
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- gatling-maven-plugin:3.0.1:test (default-cli) @ gatling-maven-plugin-demo ---
+12:35:10,328 |-INFO in ch.qos.logback.classic.LoggerContext[default] - Found resource [logback-test.xml] at [file:/F:/GitNew/gatling-maven-plugin-demo/target/test-classes/logback-test.xml]
+12:35:10,328 |-WARN in ch.qos.logback.classic.LoggerContext[default] - Resource [logback-test.xml] occurs multiple times on the classpath.
+12:35:10,328 |-WARN in ch.qos.logback.classic.LoggerContext[default] - Resource [logback-test.xml] occurs at [file:/F:/GitNew/gatling-maven-plugin-demo/target/test-classes/logback-test.xml]
+12:35:10,328 |-WARN in ch.qos.logback.classic.LoggerContext[default] - Resource [logback-test.xml] occurs at [file:/F:/GitNew/gatling-maven-plugin-demo/target/classes/logback-test.xml]
+12:35:10,428 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - debug attribute not set
+12:35:10,428 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - About to instantiate appender of type [ch.qos.logback.core.ConsoleAppender]
+12:35:10,444 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - Naming appender as [CONSOLE]
+12:35:10,444 |-INFO in ch.qos.logback.core.joran.action.NestedComplexPropertyIA - Assuming default type [ch.qos.logback.classic.encoder.PatternLayoutEncoder] for [encoder] property
+12:35:10,506 |-INFO in ch.qos.logback.classic.joran.action.LoggerAction - Setting level of logger [io.gatling.http.engine.response] to TRACE
+12:35:10,506 |-INFO in ch.qos.logback.classic.joran.action.RootLoggerAction - Setting level of ROOT logger to WARN
+12:35:10,506 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [CONSOLE] to Logger[ROOT]
+12:35:10,513 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - End of configuration.
+12:35:10,513 |-INFO in ch.qos.logback.classic.joran.JoranConfigurator@5b87ed94 - Registering current configuration as safe fallback point
+
+12:35:22,661 |-INFO in ch.qos.logback.classic.LoggerContext[default] - Found resource [logback-test.xml] at [file:/F:/GitNew/gatling-maven-plugin-demo/target/test-classes/logback-test.xml]
+12:35:22,661 |-WARN in ch.qos.logback.classic.LoggerContext[default] - Resource [logback-test.xml] occurs multiple times on the classpath.
+12:35:22,661 |-WARN in ch.qos.logback.classic.LoggerContext[default] - Resource [logback-test.xml] occurs at [file:/F:/GitNew/gatling-maven-plugin-demo/target/test-classes/logback-test.xml]
+12:35:22,661 |-WARN in ch.qos.logback.classic.LoggerContext[default] - Resource [logback-test.xml] occurs at [file:/F:/GitNew/gatling-maven-plugin-demo/target/classes/logback-test.xml]
+12:35:22,841 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - debug attribute not set
+12:35:22,841 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - About to instantiate appender of type [ch.qos.logback.core.ConsoleAppender]
+12:35:22,869 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - Naming appender as [CONSOLE]
+12:35:22,885 |-INFO in ch.qos.logback.core.joran.action.NestedComplexPropertyIA - Assuming default type [ch.qos.logback.classic.encoder.PatternLayoutEncoder] for [encoder] property
+12:35:22,985 |-INFO in ch.qos.logback.classic.joran.action.LoggerAction - Setting level of logger [io.gatling.http.engine.response] to TRACE
+12:35:22,985 |-INFO in ch.qos.logback.classic.joran.action.RootLoggerAction - Setting level of ROOT logger to WARN
+12:35:22,985 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [CONSOLE] to Logger[ROOT]
+12:35:22,985 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - End of configuration.
+12:35:22,985 |-INFO in ch.qos.logback.classic.joran.JoranConfigurator@566776ad - Registering current configuration as safe fallback point
+
+Simulation testcases.TC01 started...
+
+================================================================================
+2019-01-30 12:35:31                                           5s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=0      KO=0     )
+
+
+---- Create Task ---------------------------------------------------------------
+[--------------------------------------------------------------------------]  0%
+          waiting: 0      / active: 1      / done: 0     
+================================================================================
+
+12:35:32.160 [TRACE] i.g.h.e.r.DefaultStatsProcessor - 
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+Request:
+LoginEnterUserId: OK 
+=========================
+Session:
+Session(Create Task,1,1548831928058,Map(gatling.http.cache.baseUrl -> https://us-development.gomercatus.com, gatling.http.cache.dns -> io.gatling.http.cache.DnsCacheSupport$$anon$1@70fd82e2, Password -> Test@12345, gatling.http.ssl.sslContexts -> SslContexts(io.netty.handler.ssl.OpenSslClientContext@7c876d6e,None), UserId -> mitesh@testqa1.com),0,OK,List(),io.gatling.core.protocol.ProtocolComponentsRegistry$$Lambda$493/598325842@40fa5996)
+=========================
+HTTP request:
+POST https://us-development.gomercatus.com/external/getUserAuthType
+headers=
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0
+accept-encoding: gzip, deflate
+host: us-development.gomercatus.com
+content-type: application/x-www-form-urlencoded
+content-length: 29
+formBody=
+userName: mitesh@testqa1.com
+=========================
+HTTP response:
+status=
+302 Found
+headers= 
+Date: Wed, 30 Jan 2019 07:02:58 GMT
+Location: http://us-development.gomercatus.com:80/login.jsp?userName=mitesh@testqa1.com
+Server: Apache-Coyote/1.1
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+X-XSS-Protection: 1; mode=block
+Content-Length: 0
+Connection: keep-alive
+
+<<<<<<<<<<<<<<<<<<<<<<<<<
+
+================================================================================
+2019-01-30 12:35:36                                          10s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=1      KO=0     )
+> LoginEnterUserId                                         (OK=1      KO=0     )
+
+---- Create Task ---------------------------------------------------------------
+[--------------------------------------------------------------------------]  0%
+          waiting: 0      / active: 1      / done: 0     
+================================================================================
+
+
+================================================================================
+2019-01-30 12:35:41                                          15s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=1      KO=0     )
+> LoginEnterUserId                                         (OK=1      KO=0     )
+
+---- Create Task ---------------------------------------------------------------
+[--------------------------------------------------------------------------]  0%
+          waiting: 0      / active: 1      / done: 0     
+================================================================================
+
+12:35:42.777 [TRACE] i.g.h.e.r.DefaultStatsProcessor - 
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+Request:
+LoginEnterPassword: OK 
+=========================
+Session:
+Session(Create Task,1,1548831928058,Map(gatling.http.cache.baseUrl -> https://us-development.gomercatus.com, gatling.http.cache.dns -> io.gatling.http.cache.DnsCacheSupport$$anon$1@70fd82e2, Password -> Test@12345, gatling.http.ssl.sslContexts -> SslContexts(io.netty.handler.ssl.OpenSslClientContext@7c876d6e,None), UserId -> mitesh@testqa1.com, gatling.http.cookies -> CookieJar(Map(CookieKey(jsessionid,us-development.gomercatus.com,/) -> StoredCookie(JSESSIONID=A233AF257DBDFE16BF3B3D26D1C44365, path=/, secure, HTTPOnly,true,false,1548831942769)))),19,OK,List(),io.gatling.core.protocol.ProtocolComponentsRegistry$$Lambda$493/598325842@40fa5996)
+=========================
+HTTP request:
+POST https://us-development.gomercatus.com/j_spring_security_check
+headers=
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0
+accept-encoding: gzip, deflate
+host: us-development.gomercatus.com
+content-type: application/x-www-form-urlencoded
+content-length: 55
+formBody=
+j_username: mitesh@testqa1.com
+j_password: Test@12345
+=========================
+HTTP response:
+status=
+302 Found
+headers= 
+Date: Wed, 30 Jan 2019 07:03:10 GMT
+Location: http://us-development.gomercatus.com/login.jsp?login_error=true
+Server: Apache-Coyote/1.1
+Set-Cookie: JSESSIONID=A233AF257DBDFE16BF3B3D26D1C44365; Path=/; Secure; HttpOnly
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+X-XSS-Protection: 1; mode=block
+Content-Length: 0
+Connection: keep-alive
+
+<<<<<<<<<<<<<<<<<<<<<<<<<
+
+================================================================================
+2019-01-30 12:35:46                                          20s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=2      KO=0     )
+> LoginEnterUserId                                         (OK=1      KO=0     )
+> LoginEnterPassword                                       (OK=1      KO=0     )
+
+---- Create Task ---------------------------------------------------------------
+[--------------------------------------------------------------------------]  0%
+          waiting: 0      / active: 1      / done: 0     
+================================================================================
+
+
+================================================================================
+2019-01-30 12:35:51                                          25s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=2      KO=0     )
+> LoginEnterUserId                                         (OK=1      KO=0     )
+> LoginEnterPassword                                       (OK=1      KO=0     )
+
+---- Create Task ---------------------------------------------------------------
+[--------------------------------------------------------------------------]  0%
+          waiting: 0      / active: 1      / done: 0     
+================================================================================
+
+12:35:53.677 [WARN ] i.g.h.e.r.DefaultStatsProcessor - Request 'SelectTab: projects' failed for user 1: status.find.in(200,201,202,203,204,205,206,207,208,209,304), found 302
+12:35:53.692 [TRACE] i.g.h.e.r.DefaultStatsProcessor - 
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+Request:
+SelectTab: projects: KO status.find.in(200,201,202,203,204,205,206,207,208,209,304), found 302
+=========================
+Session:
+Session(Create Task,1,1548831928058,Map(gatling.http.cache.baseUrl -> https://us-development.gomercatus.com, gatling.http.cache.dns -> io.gatling.http.cache.DnsCacheSupport$$anon$1@70fd82e2, Password -> Test@12345, gatling.http.ssl.sslContexts -> SslContexts(io.netty.handler.ssl.OpenSslClientContext@7c876d6e,None), UserId -> mitesh@testqa1.com, gatling.http.cookies -> CookieJar(Map(CookieKey(jsessionid,us-development.gomercatus.com,/) -> StoredCookie(JSESSIONID=A233AF257DBDFE16BF3B3D26D1C44365, path=/, secure, HTTPOnly,true,false,1548831942769)))),18,KO,List(),io.gatling.core.protocol.ProtocolComponentsRegistry$$Lambda$493/598325842@40fa5996)
+=========================
+HTTP request:
+GET https://us-development.gomercatus.com/index.html
+headers=
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0
+accept-encoding: gzip, deflate
+cookie: JSESSIONID=A233AF257DBDFE16BF3B3D26D1C44365
+host: us-development.gomercatus.com
+cookies=
+JSESSIONID=A233AF257DBDFE16BF3B3D26D1C44365, path=/, secure, HTTPOnly
+=========================
+HTTP response:
+status=
+302 Found
+headers= 
+Date: Wed, 30 Jan 2019 07:03:20 GMT
+Location: http://us-development.gomercatus.com/login.html
+Server: Apache-Coyote/1.1
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+X-XSS-Protection: 1; mode=block
+Content-Length: 0
+Connection: keep-alive
+
+<<<<<<<<<<<<<<<<<<<<<<<<<
+
+================================================================================
+2019-01-30 12:35:56                                          30s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=2      KO=1     )
+> LoginEnterUserId                                         (OK=1      KO=0     )
+> LoginEnterPassword                                       (OK=1      KO=0     )
+> SelectTab: projects                                      (OK=0      KO=1     )
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,201,202,203,204,205,206,207,208,209,304), f      1 (100.0%)
+ound 302
+
+---- Create Task ---------------------------------------------------------------
+[--------------------------------------------------------------------------]  0%
+          waiting: 0      / active: 1      / done: 0     
+================================================================================
+
+
+================================================================================
+2019-01-30 12:36:01                                          35s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=2      KO=1     )
+> LoginEnterUserId                                         (OK=1      KO=0     )
+> LoginEnterPassword                                       (OK=1      KO=0     )
+> SelectTab: projects                                      (OK=0      KO=1     )
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,201,202,203,204,205,206,207,208,209,304), f      1 (100.0%)
+ound 302
+
+---- Create Task ---------------------------------------------------------------
+[--------------------------------------------------------------------------]  0%
+          waiting: 0      / active: 1      / done: 0     
+================================================================================
+
+12:36:04.135 [TRACE] i.g.h.e.r.DefaultStatsProcessor - 
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+Request:
+CreateTask: OK 
+=========================
+Session:
+Session(Create Task,1,1548831928058,Map(gatling.http.cache.baseUrl -> https://us-development.gomercatus.com, gatling.http.cache.dns -> io.gatling.http.cache.DnsCacheSupport$$anon$1@70fd82e2, Password -> Test@12345, gatling.http.ssl.sslContexts -> SslContexts(io.netty.handler.ssl.OpenSslClientContext@7c876d6e,None), UserId -> mitesh@testqa1.com, gatling.http.cookies -> CookieJar(Map(CookieKey(jsessionid,us-development.gomercatus.com,/) -> StoredCookie(JSESSIONID=A233AF257DBDFE16BF3B3D26D1C44365, path=/, secure, HTTPOnly,true,false,1548831942769)))),17,KO,List(),io.gatling.core.protocol.ProtocolComponentsRegistry$$Lambda$493/598325842@40fa5996)
+=========================
+HTTP request:
+POST https://us-development.gomercatus.com/rest/wfTask/P
+headers=
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0
+accept-encoding: gzip, deflate
+cookie: JSESSIONID=A233AF257DBDFE16BF3B3D26D1C44365
+host: us-development.gomercatus.com
+content-length: 550
+cookies=
+JSESSIONID=A233AF257DBDFE16BF3B3D26D1C44365, path=/, secure, HTTPOnly
+byteBody={"taskName":"TaskCreated","entityId":21011,"entityType":"P","templateId":21011,"description":"Task","predLink":"","plannedDuration":"","projectedDuration":"","actualDuration":"","assignedTo":[],"approver":[],"milestone":false,"priority":"Not Prioritized","strActualStartDt":null,"strActualEndDt":null,"strPlannedStartDt":null,"strPlannedFinishDt":null,"strProjectedStartDt":null,"strProjectedFinishDt":null,"selectedTaskId":null,"docRequiredInd":false,"documentName":"","recurrenceType":"NONE","recurrenceCount":"1","categoryId":"","taskType":"Task"}
+=========================
+HTTP response:
+status=
+200 OK
+headers= 
+Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; options inline-script eval-script; xhr-src 'self'; object-src 'self'; style-src 'self'; img-src 'self'; form-action 'self'; connect-src 'self'; plugin-types application/pdf application/x-shockwave-flash; reflected-xss block;script-nonce 2d3891323027898aa57ff73d80d895e2b95506fc
+Date: Wed, 30 Jan 2019 07:03:31 GMT
+Server: Apache-Coyote/1.1
+X-Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; options inline-script eval-script; xhr-src 'self'; object-src 'self'; style-src 'self'; img-src 'self'; form-action 'self'; connect-src 'self'; plugin-types application/pdf application/x-shockwave-flash; reflected-xss block;script-nonce 2d3891323027898aa57ff73d80d895e2b95506fc
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+X-WebKit-CSP: default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; options inline-script eval-script; xhr-src 'self'; object-src 'self'; style-src 'self'; img-src 'self'; form-action 'self'; connect-src 'self'; plugin-types application/pdf application/x-shockwave-flash; reflected-xss block;script-nonce 2d3891323027898aa57ff73d80d895e2b95506fc
+X-XSS-Protection: 1; mode=block
+Content-Length: 0
+Connection: keep-alive
+
+<<<<<<<<<<<<<<<<<<<<<<<<<
+
+================================================================================
+2019-01-30 12:36:06                                          40s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=3      KO=1     )
+> LoginEnterUserId                                         (OK=1      KO=0     )
+> LoginEnterPassword                                       (OK=1      KO=0     )
+> SelectTab: projects                                      (OK=0      KO=1     )
+> CreateTask                                               (OK=1      KO=0     )
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,201,202,203,204,205,206,207,208,209,304), f      1 (100.0%)
+ound 302
+
+---- Create Task ---------------------------------------------------------------
+[--------------------------------------------------------------------------]  0%
+          waiting: 0      / active: 1      / done: 0     
+================================================================================
+
+
+================================================================================
+2019-01-30 12:36:11                                          45s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=3      KO=1     )
+> LoginEnterUserId                                         (OK=1      KO=0     )
+> LoginEnterPassword                                       (OK=1      KO=0     )
+> SelectTab: projects                                      (OK=0      KO=1     )
+> CreateTask                                               (OK=1      KO=0     )
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,201,202,203,204,205,206,207,208,209,304), f      1 (100.0%)
+ound 302
+
+---- Create Task ---------------------------------------------------------------
+[--------------------------------------------------------------------------]  0%
+          waiting: 0      / active: 1      / done: 0     
+================================================================================
+
+
+================================================================================
+2019-01-30 12:36:14                                          48s elapsed
+---- Requests ------------------------------------------------------------------
+> Global                                                   (OK=3      KO=1     )
+> LoginEnterUserId                                         (OK=1      KO=0     )
+> LoginEnterPassword                                       (OK=1      KO=0     )
+> SelectTab: projects                                      (OK=0      KO=1     )
+> CreateTask                                               (OK=1      KO=0     )
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,201,202,203,204,205,206,207,208,209,304), f      1 (100.0%)
+ound 302
+
+---- Create Task ---------------------------------------------------------------
+[##########################################################################]100%
+          waiting: 0      / active: 0      / done: 1     
+================================================================================
+
+Simulation testcases.TC01 completed in 46 seconds
+Parsing log file(s)...
+Parsing log file(s) done
+Generating reports...
+
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                          4 (OK=3      KO=1     )
+> min response time                                    462 (OK=462    KO=909   )
+> max response time                                   3984 (OK=3984   KO=909   )
+> mean response time                                  1492 (OK=1686   KO=909   )
+> std deviation                                       1448 (OK=1626   KO=0     )
+> response time 50th percentile                        761 (OK=613    KO=909   )
+> response time 75th percentile                       1678 (OK=2299   KO=909   )
+> response time 95th percentile                       3523 (OK=3647   KO=909   )
+> response time 99th percentile                       3892 (OK=3917   KO=909   )
+> mean requests/sec                                  0.085 (OK=0.064  KO=0.021 )
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                             2 ( 50%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            1 ( 25%)
+> failed                                                 1 ( 25%)
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,201,202,203,204,205,206,207,208,209,304), f      1 (100.0%)
+ound 302
+================================================================================
+
+Reports generated in 0s.
+Please open the following file: F:\GitNew\gatling-maven-plugin-demo\target\gatling\tc01-20190130070526095\index.html
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:09 min
+[INFO] Finished at: 2019-01-30T12:36:15+05:30
+[INFO] ------------------------------------------------------------------------

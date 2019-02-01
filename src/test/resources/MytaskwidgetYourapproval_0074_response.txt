@@ -1,0 +1,88 @@
+define(['backbone', 'widgets/grid/models/model'], function(Backbone, Model) {
+  var SortableCollection = Backbone.Collection.extend({
+
+    model: Model,
+
+    initialize: function(options) {
+      options = options || {};
+      if (options.model) {
+        this.model = options.model;
+      }
+
+      this.list = [];
+      this.dataArrayKey = options.dataArrayKey;
+    },
+
+    parse: function(result) {
+      if (this.dataArrayKey) {
+        this.list = result.data[this.dataArrayKey];
+      } else {
+        this.list = result.data;
+      }
+
+      return this.list;
+    },
+
+    sort_key: '', // default sort key
+
+    comparator: function(item) {
+      var val = item.get(this.sort_key);
+      val = val ? val : '';
+      val = _.isNumber(val) ? 1 * val : ('' + val).toLowerCase();
+      return val;
+    },
+
+    filterCollection: function(filterValue) {
+      var models = this.list;
+
+      if (filterValue) {
+        if (_.isNumber(filterValue)) {
+          filterValue = filterValue.toString();
+        }
+        models = _.filter(this.list, function(data) {
+          return _.some(_.values(data), function(value) {
+            if (_.isNumber(value)) {
+              value = value.toString();
+            }
+            if (_.isString(value)) {
+              return value.toLowerCase().indexOf(filterValue.toLowerCase()) != -1;
+            }
+            return false;
+          });
+        });
+      }
+
+      this.reset(models);
+    },
+
+    customSortBy: function(fieldName, sortDir) {
+      this.sort_key = fieldName;
+      this.models = this.customSort(this.models, this.comparator, sortDir, this);
+      this.trigger('onCustomSort');
+    },
+
+    customSort: function(obj, value, dir, context) {
+      var iterator = _.isFunction(value) ? value : function(obj) {
+        return obj[value];
+      };
+
+      return _.pluck(_.map(obj, function(value, index, list) {
+        return {
+          value: value,
+          index: index,
+          criteria: iterator.call(context, value, index, list),
+        };
+      }).sort(function(left, right) {
+        var a = left.criteria;
+        var b = right.criteria;
+
+        if (dir == 'asc') {
+          return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        } else {
+          return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+        }
+      }), 'value');
+    },
+  });
+  return SortableCollection;
+});

@@ -1,0 +1,5 @@
+<% _.each(cConfig, function(column, index){ %>
+<div class="pm-td pm-cell-<%=column.width%> <%=column.className%> <%= column.align ? 'text-'+column.align : ''%> <%= (fixedColumn && index==0) ? 'pm-fixed-col' : ''%>">
+  <% if(column.renderer){ %><%=column.renderer.call(null, data[column.src], data, column.src) %><% } else { %><%=data[column.src]%><% } %>
+</div>
+<% }); %>

@@ -1,0 +1,124 @@
+define(['jquery'], function($) {
+  return {
+    defaultDateFormat: 'mm/dd/yy',
+    defaultDecimalSep: '.',
+    defaultGroupSep: ',',
+    dateRegExp: new RegExp('^[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}$'),
+
+    /* To convert dateString as dateObject by parsing it by expected dateFormat */
+    parseDate: function(dateStr, format) {
+      format = format || this.defaultDateFormat;
+      var date = null;
+      try {
+        date = $.datepicker.parseDate(format, dateStr);
+      } catch (e) {
+        date = null;
+      }
+      return date;
+    },
+
+    /* To validate date Input by given dateFormat */
+    validateDate: function(dateStr, format) {
+      format = format || this.defaultDateFormat;
+      var isValid = this.dateRegExp.test(dateStr);
+      try {
+        $.datepicker.parseDate(format, dateStr);
+      } catch (e) {
+        isValid = false;
+      }
+      return isValid;
+    },
+
+    /* To convert a DateObject as String with given format */
+    dateToString: function(date, format) {
+      format = format || this.defaultDateFormat;
+      return date ? $.datepicker.formatDate(format, date) : '';
+    },
+
+    /* To convert a dateString from one dateFormat to another dateFormat */
+    parseAndFormatDate: function(dateStr, fromFormat, toFormat) {
+      if (dateStr) {
+        fromFormat = fromFormat || this.defaultDateFormat;
+        toFormat = toFormat || this.defaultDateFormat;
+        var date = this.parseDate(dateStr, fromFormat);
+        dateStr = date ? $.datepicker.formatDate(toFormat, date) : '';
+      }
+      return dateStr;
+    },
+
+    /* Format integer value by group and decimal symbol */
+    formatNumber: function(number, decimalSep, groupSep) {
+      if (number && SCS.RegExp.numbers.test(number)) {
+        decimalSep = decimalSep || this.defaultDecimalSep;
+        groupSep = groupSep || this.defaultGroupSep;
+        var negativeSign = Number(number) < 0 ? '-' : '';
+        var numArr = ('' + number).split(this.defaultDecimalSep);
+        var numberVal = Math.abs(numArr[0]);
+        var decimalVal = numArr.length === 1 ? '' : (decimalSep + numArr[1]);
+        // Insert group separator after 3 places
+        numberVal = String(numberVal).replace(/(.)(?=(\d{3})+$)/g, '$1'
+            + groupSep);
+        number = negativeSign + numberVal + decimalVal;
+      }
+      return number;
+    },
+
+    /* Renderer for Numeric, Currency and Percentage fields */
+    numericRenderer: function(value, format, type, decimalSep, groupSep) {
+      if (value !== null && value !== undefined && value !== ''
+          && SCS.RegExp.numbers.test(value)) {
+        if (type === 'percentage' || type === 'numeric'
+            || type === 'currency') {
+          var precision = null;
+          if (format) {
+            var formatArr = format.split('.');
+            precision = formatArr.length > 1 ? formatArr[1].length : 0;
+          }
+          value = Number(value); // Cast to number
+          if (type === 'percentage') {
+            value = value * 100;
+            precision = 2;
+          }
+          value = precision !== null ? value.toFixed(precision) : value; // Fix precision as per format
+          value = this.formatNumber(value, decimalSep, groupSep);
+          value = type !== 'percentage' ? value : (value + ' %');
+        }
+      }
+      return value;
+    },
+
+    /* To validate number input as per localization setting */
+    validateNumber: function(number, decimalSep, groupSep) {
+      var isValid = false;
+      if (number !== undefined) {
+        number = String(number);
+        var decSep = decimalSep || this.defaultDecimalSep;
+        var grpSep = groupSep || this.defaultGroupSep;
+        var regEx;
+        if (number.indexOf(grpSep) === -1) {
+          // Regular number without group separator
+          regEx = '^-?\\d*\\' + decSep + '?\\d*$';
+          isValid = new RegExp(regEx).test(number);
+        } else { // With group separator
+          regEx = '^-?\\d{1,3}(\\' + grpSep + '\\d{3})+(\\' + decSep + '\\d*)?$';
+          isValid = new RegExp(regEx).test(number);
+        }
+      }
+      return isValid;
+    },
+
+    /* To convert string to number as per localization setting,
+       In case of invalid input string, it returns null */
+    parseNumber: function(value, decimalSep, groupSep) {
+      var number = null;
+      if (this.validateNumber(value, decimalSep, groupSep)) {
+        // Remove all group separators e.g. 4,671,345.67 => 4671345.67
+        value = value.replace(new RegExp('\\' + groupSep, 'g'), '');
+        // Replace decimal separator with .(dot)
+        value = value.replace(new RegExp('\\' + decimalSep, 'g'), '.');
+        number = Number(value);
+      }
+      return number;
+    },
+  };
+});

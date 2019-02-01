@@ -1,0 +1,1 @@
+[{"channel":"/meta/connect","connectionType":"long-polling","advice":{"timeout":0},"id":"2","clientId":"59imvb513qlsaz7jfto5wj4a00"}]

@@ -1,0 +1,845 @@
+define([
+  'backbone',
+  'views/pm/taskUtil',
+  'views/localizationUtil',
+  'views/pm/pmGridView',
+  'views/pm/taskViewMenuView',
+  'views/pm/filtersMenuView',
+  'text!templates/pm/globalMyTaskTabTpl.html',
+], function(Backbone,
+    TaskUtil,
+    LocalizationUtil,
+    PmGridView,
+    TaskViewMenuView,
+    FiltersMenuView,
+    RowTpl) {
+  var SortDirection = {
+    ASC: 'ASC',
+    DESC: 'DESC',
+    toggle: function(direction) {
+      if (direction === this.ASC) {
+        return this.DESC;
+      }
+      return this.ASC;
+    },
+    iconClass: function(direction) {
+      if (direction === this.ASC) {
+        return 'fa-caret-up';
+      }
+      return 'fa-caret-down';
+    },
+  };
+  var View = Backbone.View.extend({
+    events: {
+        'click .mc-search-with-X .clear-search': 'clearSearch',
+        'keydown input#myTaskSearch': 'checkForEnter',
+        'click .mc-search-with-X .search': 'search',
+        'click .sortable': 'onSort',
+        'click #select_all': 'onSelectAll',
+        'click .global-actions li a': 'onActionMenuItem',
+        'mouseenter .pm-tr': 'onTaskGridRowEnter',
+        'click .task-action-button': 'onTaskActionButtonClick',
+    },
+
+    className: 'my-task-tab-view mc-fill',
+
+    template: _.template(RowTpl),
+
+    initialize: function(options) {
+      _.extend(this, Backbone.Events);
+      _.bindAll(this, 'gridResultParser', 'dateRenderer', 'buildDataURL', 'cellRenderer', 'resourcesRenderer',
+          'durationRenderer', 'actionRenderer');
+
+      this.activeFilterId = -1;
+      this.userDateFormat = getDateFormat().jQueryFormat;
+      SCS.SELECTED_ORG_BY_ADMIN = SCS.SELECTED_ORG_BY_ADMIN || SCS.LOGGED_IN_USER.orgId;
+
+      // EIM-8049 When counts are updated, keep grid totalCount updated as well.
+      this.listenTo(SCS.EVENTS, 'myTaskCountUpdated', this.updateGridTotalCount, this);
+
+      this.sortInfo = {
+        field: '',
+        direction: SortDirection.ASC,
+      };
+
+      // After approve/reject task from grid panel, Refresh grid if edited task is present
+      this.listenTo(SCS.EVENTS, 'taskUpdate', function(taskId) {
+        if (this.taskGrid.getRowDataById(taskId)) {
+          this.loadTab();
+        }
+      }, this);
+
+      // Refresh grid after Task Edit from MyTask page or popup
+      this.listenTo(SCS.EVENTS, 'taskSaveFromMyTask', function(taskId) {
+        showLoader();
+        var _self = this;
+        setTimeout(function() {
+          _self.loadTab();
+        }, 1000); // EIM-4798 Add delay of 1sec to wait for MongoDB updates
+      }, this);
+
+      // Window resize specific for projects
+      this.listenTo(SCS.EVENTS, 'windowResize', function(e) {
+        this.resetOnDocumentClick();
+      }, this);
+
+      // handle document clicks
+      this.listenTo(SCS.EVENTS, 'documentClick', function(e) {
+        this.resetOnDocumentClick();
+      });
+    },
+
+    render: function() {
+      if (!has_permission('my_task_details')) {
+        return this;
+      }
+      this.$el.html(this.template());
+      this.initFiltersMenu();
+      this.fetchViewList();
+      return this;
+    },
+
+    buildColumnConfig: function() {
+      // forced columns
+      var columns = [
+        {
+          name: 'Task Name', src: 'taskName', width: '300', className: 'pm-task-cell drag-disabled', fieldType: 'text',
+          headerRenderer: function(config) {
+            return '<div class="mc-select-all" title="Select all Tasks"><input type="checkbox" id="select_all"></div>'
+                + '<div class="task-id-cell-block">ID</div>'
+                + '<div class="task-name-cell-block sortable" data-src="taskName">Task Name '
+                + '<span class="fa fa-caret-down mc-ico-sort"></span></div>';
+          },
+          renderer: function(value, record, src) {
+            var cellHtml = '<div class="name-cell-wrapper"> ' +
+                '<span class="task-spacer"></span><span class="t-name">' + value + '</span>' +
+                '<button class="btn mc-btn-action menu-button task-action-button">&nbsp;</button>' +
+                '</div>';
+
+            cellHtml = '<div class="task-id-cell-block">' + record.taskSeqNo + '</div>' +
+                '<div class="task-name-cell-block">' + cellHtml + '</div>';
+
+            return cellHtml;
+          },
+        },
+        {name: $.i18n.prop('name'), sortable: true, src: 'projectName', width: '220', renderer: this.cellRenderer},
+      ];
+      var viewColumns = this.customViewMenu.getCustomizeColumnConfig();
+      columns = columns.concat(viewColumns);
+
+      return columns;
+    },
+
+    getAllColumns: function() {
+      this.allColumnList = [
+        {name: 'Project Category', src: 'projectCategory', sortable: true, width: '120', renderer: this.cellRenderer},
+        {name: $.i18n.prop('type'), src: 'taskType', sortable: true, width: '140', renderer: this.cellRenderer},
+        {name: 'Task Category', src: 'categoryId', sortable: true, width: '120', renderer: this.taskCategoryRenderer},
+        {name: 'Predecessors', src: 'predLink', width: '130', renderer: this.cellRenderer},
+        {
+          name: '% Complete', src: 'perccentComplete', sortable: true, width: '160', renderer: function(value, record) {
+            return value ? taskCompletionProgressRenderer(value) : '';
+          },
+        },
+        {name: 'Assignees', src: 'assignedTo', sortable: true, width: '160', renderer: this.resourcesRenderer},
+        {name: 'Approvers', src: 'approver', sortable: true, width: '160', renderer: this.resourcesRenderer},
+        {name: 'Actual Duration', src: 'actualDuration', sortable: true, width: '120', renderer: this.durationRenderer},
+        {name: 'Actual Start', src: 'actualStartDt', sortable: true, width: '110', renderer: this.dateRenderer},
+        {name: 'Actual End', src: 'actualEndDt', sortable: true, width: '110', renderer: this.dateRenderer},
+        {name: 'Planned Start', src: 'plannedStartDt', sortable: true, width: '110', renderer: this.dateRenderer},
+        {name: 'Planned End', src: 'plannedFinishDt', sortable: true, width: '110', renderer: this.dateRenderer},
+        {
+          name: 'Planned Duration', src: 'plannedDuration',
+          sortable: true, width: '110', renderer: this.durationRenderer,
+        },
+        {
+          name: 'Projected Duration', src: 'projectedDuration',
+          sortable: true, width: '120', renderer: this.durationRenderer,
+        },
+        {name: 'Projected Start', src: 'projectedStartDt', sortable: true, width: '110', renderer: this.dateRenderer},
+        {name: 'Projected End', src: 'projectedFinishDt', sortable: true, width: '110', renderer: this.dateRenderer},
+        {name: 'Priority', src: 'priority', sortable: true, width: '160', renderer: this.cellRenderer},
+        {name: 'Approval Status', src: 'approvalStatus', sortable: true, width: '120', renderer: this.cellRenderer},
+        {name: 'Document Name', src: 'documentName', sortable: true, width: '120', renderer: this.cellRenderer},
+      ];
+    },
+
+    fetchViewList: function() {
+      this.taskViewList = [];
+      var _self = this;
+      $.ajax({
+        type: 'GET',
+        url: 'rest/wfTask/GLOBAL_TASK_VIEW/views',
+        dataType: 'json',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          if (response.data) {
+            _self.taskViewList = response.data;
+          }
+        },
+        error: function(jqXHR) {
+          var errorMessage = $.parseJSON(jqXHR.responseText);
+          toastr.error(errorMessage.error, 'Fetch View list');
+        },
+        complete: function() {
+          _self.initCustomViewMenu();
+        },
+      });
+    },
+
+    initCustomViewMenu: function() {
+      this.getAllColumns();
+      this.customViewMenu = new TaskViewMenuView({
+        viewList: this.taskViewList,
+        columnList: this.allColumnList,
+        entityType: 'GLOBAL_TASK_VIEW',
+      });
+
+      this.$('#global-task-toolbar form').append(this.customViewMenu.render().el);
+
+      this.customViewMenu.on('onViewChange', function(viewData) {
+        this.columnsConfig = this.buildColumnConfig();
+        this.taskGrid.updateColumns(this.columnsConfig);
+        this.taskGrid.forceFitTaskGrid();
+        this.initToolTips();
+      }, this);
+    },
+
+    initFiltersMenu: function() {
+      this.filtersMenu = new FiltersMenuView({
+          labelVisible: true,
+          entityType: 'GLOBAL_TASK_LIST',
+          type: 'GLOBAL',
+          createFilterVisible: has_permission('all_tasks'),
+          });
+
+      var _self = this;
+      this.filterMap = [];
+      var originalPopulateMenus = this.filtersMenu.populateMenus;
+      this.filtersMenu.populateMenus = function() {
+        // pop off 'None' as we won't need it
+        if (this.filtersList[0].filterId === -1) {
+          this.filtersList.shift();
+        }
+
+        // map id => filter on remaining
+        _.each(this.filtersList, function(filter) {
+          _self.filterMap[filter.filterId] = filter;
+
+          if (filter.data.startsWith('{"preset":')) {
+            // preset filter
+            filter.preset = JSON.parse(filter.data).preset;
+          }
+        });
+
+        // proxy to original function
+        originalPopulateMenus.apply(this);
+      };
+
+      this.filtersMenu.on('onFiltersLoaded', function(filterList) {
+        if (_self.filterList == null) {
+          _self.filterList = filterList;
+          // the "assigned to you" is the default - set it back
+          // ugly approach by brittle name
+          var defaultFilter = _.find(filterList, function(filter) {
+            return filter.defaultInd === true
+              && filter.data.indexOf('preset||Is||ASSIGNEE') > -1;
+          });
+          var defaultFilterId = defaultFilter != null ? defaultFilter.filterId : - 1;
+          _self.filtersMenu.updateLoadedFilterId(defaultFilterId);
+          _self.activeFilterId = defaultFilterId;
+          _self.loadTab();
+        }
+      });
+      this.filtersMenu.updateLastLoaded = function(filterId, callback) {
+        _self.activeFilterId = filterId;
+        _self.loadTab();
+        callback(null, []);
+      };
+      this.filtersMenu.on('onFilterUpdate', function(reload) {
+        if (reload) {
+          _self.loadTab();
+        }
+      });
+
+      // add filters menu to DOM
+      this.$('#global-task-toolbar form').append(this.filtersMenu.render().el);
+    },
+
+    initGrid: function() {
+      this.columnsConfig = this.buildColumnConfig();
+      var gridConfig = {
+        buildDataURL: this.buildDataURL,
+        fixedColumn: true,
+        pagination: true,
+        columnsConfig: this.columnsConfig,
+        resultParser: this.gridResultParser,
+      };
+
+
+      this.taskGrid = new PmGridView(gridConfig);
+
+      this.taskGrid.on('onCellClick', function(e, model, cIndex) {
+        var clickTarget = $(e.target);
+        if (clickTarget.hasClass('view-my-task') || clickTarget.hasClass('t-name')) {
+          var mode = clickTarget.hasClass('t-name') ? 'edit' :
+              (this.filterMap[this.activeFilterId].preset === 'APPROVER' ? 'view' : 'edit');
+          this.viewTask(model.toJSON(), mode);
+        }
+      }, this);
+
+      this.taskGrid.on('beforeLoad', function() {
+        showLoader();
+      }, this);
+
+      this.taskGrid.on('onDataLoad', function(collection) {
+        this.initToolTips();
+        hideLoader();
+      }, this);
+
+      this.taskGrid.on('onSelectionChanged', function(selection) {
+        // select-all checkmark in sync with rows selected
+        var checkbox = this.$('#select_all');
+        checkbox.prop('checked', (selection.length === this.taskGrid.mainCollection.size()));
+
+        var menuActions = this.$(
+            '.global-actions li a[data-action=export]');
+        if (selection.length === 0) {
+          menuActions.prop('disabled', true);
+          menuActions.addClass('disabled');
+        } else {
+          menuActions.removeAttr('disabled');
+          menuActions.removeClass('disabled');
+        }
+      }, this);
+
+      this.$('.task-tab-body').html(this.taskGrid.render().$el);
+      this.taskGrid.forceFitTaskGrid();
+      this.updateSortInUi();
+    },
+
+    /**
+     * Determine if the current user is associated with IDs from provided list.
+     *
+     * @param {array} list - the list of IDs to search against.  in form: [0-9]+_[UPT]
+     * @return {boolean}
+     */
+    isCurrentUserAssociated: function(list) {
+      var m = _.find(list, function(item) {
+        if (item.indexOf('_') > -1) {
+          // standard resource
+          var parts = item.split(/_/);
+          switch (parts[1]) {
+            case 'U':
+              return Number.parseInt(parts[0]) === SCS.LOGGED_IN_USER.userId;
+            case 'T':
+              // get the team from resources
+              var team = _.find(SCS.STORE.TASK_RESOURCES, function(r) {
+                return r.id === item;
+              });
+              // are we a member of the team?
+              var found = _.find(team.teamUserIds, function(id) {
+                return id === SCS.LOGGED_IN_USER.userId;
+              });
+              return found !== undefined;
+            default:
+              return false;
+          }
+        }
+        return false;
+      });
+      return m !== undefined;
+    },
+
+    gridResultParser: function(result) {
+      if (result.data) {
+        if (this.taskGrid.dataCollection.totalCount == undefined) {
+          this.updateGridTotalCount();
+        }
+        this.taskGrid.dataCollection.totalCount = result.data.totalCount;
+        this.taskGrid.dataCollection.list = result.data.taskList;
+
+        this.$('.mc-count').text(result.data.totalCount);
+
+        return this.taskGrid.dataCollection.list;
+      } else {
+        return [];
+      }
+    },
+
+    updateGridTotalCount: function() {
+      if (this.taskGrid != null) {
+        // FIXME - task grid will contain custom filter data,
+        // so total count will have to derive from server.  Anything other than 0
+        // could make for an infinite loop of calls to fetch 'next page' if grid count is less
+        // than this number.
+        this.taskGrid.dataCollection.totalCount = 0;
+      }
+    },
+
+    initToolTips: function() {
+      var _self = this;
+      setTimeout(function() {
+        _self.$('[data-hover="popover"]').popover();
+        _self.$('[data-toggle="popover"]').popover();
+      }, 1000);
+    },
+
+    confirmDelete: function(task) {
+      var resp = confirm('Are you sure you want to delete this Task?');
+      if (resp) {
+        this.deleteTask(task);
+      }
+    },
+
+    dateRenderer: function(value, record, src) {
+      return value ? LocalizationUtil.dateToString(new Date(value), this.userDateFormat) : '';
+    },
+
+    deleteTask: function(task) {
+      var _self = this;
+      var msgTitle = 'Task Delete';
+
+      var taskId = task.get('id');
+      var entityType = task.get('entityType');
+      var entityId = task.get('entityId');
+
+      $.ajax({
+        type: 'DELETE',
+        url: 'rest/wfTask/' + entityType + '/' + taskId + '/' + entityId,
+        success: function() {
+          toastr.success('Task deleted successfully.', msgTitle);
+          // global tasks are cross-project, so we'll need to update from deleted task project id
+          _self.updateProjectCompletePercentage(entityType, entityId, function() {
+            _self.loadTab();
+          });
+        },
+        error: function() {
+          toastr.error('Failed to delete Task', msgTitle);
+        },
+      });
+    },
+
+    durationRenderer: function(value, record, src) {
+      var html = '';
+      if (value) {// Trim ending zeros from duration field
+        html = TaskUtil.trimDurationZeros(value);
+      }
+      return html;
+    },
+
+    cellRenderer: function(value, record, src) {
+      return value ? value : '';
+    },
+
+    actionRenderer: function(value, record, src) {
+      var btnName = this.filterMap[this.activeFilterId].preset === 'APPROVER' ? 'Review' : 'Edit';
+      return '<a class="view-my-task">' + btnName + '</a>';
+    },
+
+    taskCategoryRenderer: function(value, record, src) {
+      var category = _.find(TaskUtil.getTaskCategories(), function(item) {
+        return value && item.id === value;
+      });
+      var html = category ? category.name : '';
+      return html;
+    },
+
+    resourcesRenderer: function(value, record, src) {
+      var html = '';
+      if (value) {
+        var namesArr = [];
+        var toolTip = '<ul>';
+        _.each(value, function(id) {
+          var index = indexOfJSONArr(SCS.STORE.TASK_RESOURCES, 'id', id);
+          if (index != -1) {
+            var user = SCS.STORE.TASK_RESOURCES[index];
+            namesArr.push(user.name);
+
+            var image = '';
+            if (user.id.indexOf('_P') > -1) {
+              image = '<span class="avatar-img resource-placeholder"></span>';
+            } else if (user.id.indexOf('_T') > -1) {
+              image = '<span class="avatar-img resource-team"></span>';
+            } else {
+              id = user.id.split('_')[0];
+              image = '<img class="avatar-img" src="rest/userInfo/photo/download/' + id + '" />';
+            }
+
+            toolTip += '<li>' + image + user.name + '</li>';
+          }
+        }, this);
+        toolTip += '</ul>';
+
+        if (value.length == 1) {
+          html = namesArr[0];
+        } else if (value.length > 1) {
+          html = '<a class="multiple-resource" tabindex="0" role="button" data-container="body" data-toggle="popover"' +
+              ' data-trigger="hover" data-placement="top" data-html=true ' +
+              'data-content="' + quoteAttributes(toolTip) + '">' +
+              value.length + (src == 'assignedTo' ? ' Assignees' : ' Approvers') + '</a>';// namesArr.join(", ");
+        }
+      }
+
+      return html;
+    },
+
+    loadTab: function() {
+      this.initGrid();
+      this.loadMyTasks();
+    },
+
+    buildDataURL: function() {
+      return 'rest/wfTaskApproval/globalMyTask';
+    },
+
+    checkForEnter: function(e) {
+      var code = e.keyCode || e.which || e.charCode;
+      if (code == 13) {
+        this.search();
+      }
+    },
+
+    clearSearch: function() {
+      this.$('input#myTaskSearch').val('');
+      this.search();
+    },
+
+    search: function(e) {
+      this.searchQuery = this.$('input#myTaskSearch').val().trim();
+
+      // don't repeat search if it's the same as the last one
+      if (this.searchQuery === this.lastSearchQuery) {
+        return;
+      }
+      this.lastSearchQuery = this.searchQuery;
+
+      if (this.searchQuery) {
+        this.$('.mc-search-with-X').addClass('show-X');
+      } else {
+        this.$('.mc-search-with-X').removeClass('show-X');
+      }
+
+      this.loadMyTasks();
+    },
+
+    resetSearch: function() {
+      this.$('input#myTaskSearch').val('');
+      this.searchQuery = '';
+      this.$('.mc-search-with-X').removeClass('show-X');
+    },
+
+    getMenuElement: function() {
+      // reusing existing menu element
+      return $('#wrap_inline_project_action_menu');
+    },
+
+    loadMyTasks: function() {
+      this.taskGrid.pageNo = 1;
+      this.taskGrid.pageOptions = {
+        filterId: this.activeFilterId,
+        searchQuery: this.searchQuery,
+        sortInfo: this.sortInfo,
+      };
+      this.taskGrid.fetchData();
+    },
+
+    doExportSelected: function() {
+      var isSelectAllChecked = this.$('#select_all').is(':checked');
+      var maximumRecordsAllowed = 5000;
+      var selection = this.taskGrid.getSelection();
+      if (selection.length > maximumRecordsAllowed
+        || (isSelectAllChecked && this.taskGrid.dataCollection.totalCount > maximumRecordsAllowed)) {
+        toastr.error('The Maximum Rows to Export are exceeded. Please reduce number of rows.',
+           'Error');
+        return;
+      }
+
+      var taskIds = _.map(selection, function(task) {
+        return task.get('id');
+      });
+
+      var viewId = this.customViewMenu.selectedView.filterId;
+      if (viewId == null || viewId === '') {
+        viewId = SCS.NO_VIEW;
+      }
+
+      var theUrl = 'rest/wfTaskApproval/export/CSV/' + viewId;
+      var payload = taskIds;
+
+      // Behavior for 'select all' checkbox is different
+      if (isSelectAllChecked) {
+        theUrl = 'rest/wfTaskApproval/export/CSV/ALL/filter/' + this.activeFilterId + '/view/' + viewId;
+        payload = {
+          sortInfo: this.sortInfo,
+          searchQuery: this.searchQuery,
+        };
+      }
+
+      $.ajax({
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        type: 'POST',
+        url: theUrl,
+        data: JSON.stringify(payload),
+        success: function(response, status, request) {
+          var disp = request.getResponseHeader('Content-Disposition');
+          if (disp && disp.search('attachment') !== -1) {
+            var filename = disp.replace(/^.*filename=(.*)$/, '$1');
+            var contentType = request.getResponseHeader('Content-Type');
+            var blob = new Blob([response], {type: contentType});
+
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            document.body.removeChild(link);
+          }
+        },
+      });
+    },
+
+    onActionMenuItem: function(e) {
+      var button = $(e.target);
+      // should only occur when not disabled
+      if (button.attr('data-action') === 'export') {
+        this.doExportSelected();
+      } else {
+        toastr.error('Unknown action: ' + button.attr('data-action'));
+      }
+    },
+
+    onSelectAll: function(e) {
+      var checkbox = this.$('#select_all');
+      if (checkbox.is(':checked')) {
+        var ids = this.taskGrid.mainCollection.models.map(function(task) {
+          return task.get('id');
+        });
+        this.taskGrid.setSelection(ids);
+      } else {
+        this.taskGrid.resetSelection();
+      }
+    },
+
+    onSort: function(e) {
+      var clickTarget = $(e.target);
+      var field = clickTarget.attr('data-src');
+      if (!field) {
+        // maybe clicked on arrow.  search parents for the sortable class
+        field = clickTarget.parent('.sortable').attr('data-src');
+      }
+
+      if (this.sortInfo.field === field) {
+        // swap directions
+        this.sortInfo.direction = SortDirection.toggle(this.sortInfo.direction);
+      } else {
+        this.sortInfo.field = field;
+        this.sortInfo.direction = SortDirection.ASC;
+      }
+
+      this.updateSortInUi();
+
+      this.loadMyTasks();
+    },
+
+    onTaskActionButtonClick: function(e) {
+      var button = $(e.currentTarget);
+      var row = button.parents('.pm-tr');
+
+      var task = this.taskGrid.getRowModel(row);
+      e.stopImmediatePropagation();
+
+      this.showTaskMenu(e, task);
+    },
+
+    onTaskActionMenu: function(action, task) {
+      switch (action) {
+        case 'view':
+          this.viewTask(task.toJSON(), 'view');
+          break;
+        case 'edit':
+          this.viewTask(task.toJSON(), 'edit');
+          break;
+        case 'delete':
+          this.confirmDelete(task);
+          break;
+        case 'request':
+          this.requestForApproval(task);
+          break;
+        case 'review':
+          this.viewTask(task.toJSON(), 'review');
+          break;
+        default:
+          toastr.error('Unknown action: ' + action);
+      }
+    },
+
+    onTaskGridRowEnter: function(e) {
+      this.getMenuElement().empty();
+    },
+
+    requestForApproval: function(task) {
+      var _self = this;
+      var data = task.toJSON();
+      require(['views/pm/approvalRequestFormView'], function(ApprovalRequestView) {
+        SCS.dialogIds.approval = 'modal_create_approval';
+        var form = new ApprovalRequestView({
+          projectId: data.entityId,
+          taskId: data.id,
+          data: data,
+          entityId: data.entityId,
+          entityType: data.entityType,
+        });
+        form.on('onSave', function(approver) {
+          $('#' + SCS.dialogIds.approval).modal('hide');
+          this.loadTab();
+        }, _self);
+        openViewInDialog(SCS.dialogIds.approval, form);
+          form.trigger('onRendered');
+        });
+    },
+
+    resetOnDocumentClick: function() {
+      this.getMenuElement().empty();
+    },
+
+    // handle task inline action menu
+    showTaskMenu: function(e, task) {
+      this.resetOnDocumentClick();
+
+      var dialogEl = this.getMenuElement();
+
+      if (!this.menuView) {
+        var _self = this;
+        this.menuView = {};
+        dialogEl.off('click', '.mc-inline-project-menu li a');
+        dialogEl.delegate('.mc-inline-project-menu li a', 'click', function() {
+          if ($(this).hasClass('in-active')) {
+            return false;
+          }
+
+          var action = $(this).attr('action');
+          var dTask = dialogEl.data('task');
+          _self.onTaskActionMenu(action, dTask);
+        });
+      }
+
+      dialogEl.data('task', task);
+
+      var actionMenu = [];
+      actionMenu.push('<ul class="dropdown-menu dropdown-menu-right mc-inline-project-menu show">');
+
+      // being menu items
+      actionMenu.push('<li><a action="view">View</a></li>');
+      if (has_permission('wf_edit_task')) {
+        actionMenu.push('<li><a action="edit">Edit</a></li>');
+      }
+
+      if (has_permission('wf_delete_task') && (!task.get('milestone') || has_permission('wf_delete_milestone'))) {
+        actionMenu.push('<li><a action="delete">Delete</a></li>');
+      }
+
+      actionMenu.push('<li><a action="request">Send for approvals</a></li>');
+
+      // only if current user is a approver on task
+      if (this.isCurrentUserAssociated(task.get('approver'))) {
+        actionMenu.push('<li><a action="review">Review</a></li>');
+      }
+
+      // end menu items
+      actionMenu.push('</ul>');
+
+      dialogEl.empty();
+      var menu = $(actionMenu.join('')).appendTo(dialogEl);
+
+      var el = $(e.target);
+      menu.offset({
+        top: el.offset().top + el.height() + 5,
+        left: el.offset().left - 160,
+      }).show();
+    },
+
+    /**
+     * Update project percentage on server.
+     *
+     * @param {string} entityType - the entity type: P, A, etc.
+     * @param {int} entityId - the project/asset ID.
+     * @param {function} callback - the optional callback.
+     */
+    updateProjectCompletePercentage: function(entityType, entityId, callback) {
+      $.ajax({
+        url: 'rest/wfTask/' + entityType + '/calculateOverallPercentage/' + entityId,
+        dataType: 'json',
+        success: function(response) {
+          if (callback !== undefined) {
+            callback();
+          }
+        },
+      });
+    },
+
+    /**
+     * Updates UI based on current SortInfo.
+     */
+    updateSortInUi: function() {
+      // handle sort icons
+      var _self = this;
+      this.$('.sortable').each(function() {
+        var element = $(this);
+        element.removeClass('sorted');
+        if (element.attr('data-src') === _self.sortInfo.field) {
+          element.addClass('sorted');
+          var icon = element.find('.mc-ico-sort');
+          icon.removeClass('fa-caret-down');
+          icon.removeClass('fa-caret-up');
+          icon.addClass(SortDirection.iconClass(_self.sortInfo.direction));
+        }
+      });
+    },
+
+    viewTask: function(task, mode) {
+      if (task.taskActive === false) {
+        toastr.error('Task is deleted.');
+        return false;
+      }
+
+      if (task.projectActive === false) {
+        if (task.projectId) {
+          toastr.error('Associated entity has been deleted, cancelled or abandoned.');
+        }
+        return false;
+      }
+
+      var projectType = getProjectTypeByCategory(task.projectCategory) || SCS.PROJECT_CATEGORY_TYPE.PROJECT;
+      var isAsset = projectType.isAsset;
+
+      if (!isAsset && !has_permission('access_projects')) {
+        toastr.info($.i18n.prop('access_tasks_tab_error'), 'Project Tasks');
+        return;
+      } else if (isAsset && (!has_permission('asset_management') || !has_permission('view_asset_commitments'))) {
+        toastr.info($.i18n.prop('access_tasks_tab_error'), 'Asset Tasks');
+        return;
+      }
+
+      // legacy mechanism looking at filter
+      var isApprovalForm = (mode === 'edit' ? false : this.filterMap[this.activeFilterId].preset === 'APPROVER');
+      if (mode === 'review') {
+        isApprovalForm = true;
+        // apparently the mode has to be 'view' for review
+        mode = 'view';
+      }
+
+      TaskUtil.loadAndViewTask(task.id, mode, isApprovalForm, task.projectName);
+    },
+  });
+  return View;
+});

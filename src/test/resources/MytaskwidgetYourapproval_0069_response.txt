@@ -1,0 +1,14 @@
+<li class="menu-item" data-id="<%=filterId%>">
+  <div class="container-fluid mc-no-gutter">
+    <div class="row mc-sm-gutter">
+      <div class="col-md-11 col-sm-11 col-xs-11 mc-item">
+        <div class="mc-item-name mc-ellipsis"><%=filterName%><%if(sharedInd){%> (shared)<%}%></div>
+      </div>
+      <div class="col-md-1 col-sm-1 col-xs-1 pull-right mc-ico-edit">
+        <%if(!(defaultInd || (sharedInd && !has_permission("share_dealroom_views")))){
+          if (filterType !== 'GLOBAL_TASK_VIEW' || has_permission('all_tasks')) {%><i class="m-icon m-edit"></i><%}}%>
+      </div>
+    </div>
+  </div>
+</li>
+<li role="separator" class="divider"></li>

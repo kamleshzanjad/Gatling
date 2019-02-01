@@ -1,0 +1,85 @@
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header mc-modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <img src="app/Assets/close.png" alt="Close"/>
+      </button>
+      <h4 class="modal-title" id="<%=SCS.dialogIds.view%>_label">Edit View</h4>
+    </div>
+
+    <div class="modal-body mc-modal-body mc-no-gutter">
+      <div class="mc-search-fields name-wrapper">
+        <div class="row mc-sm-gutter">
+          <div class="col-md-2 col-sm-2 mc-voffset-5">
+            <label>Apply To:</label>
+          </div>
+          <div class="col-md-9 col-sm-9">
+            <select id="mc_apply_to" class="form-control multiselect" multiple>
+              <% _.each(SCS.PROJECT_CATEGORY_TYPE, function(category) { %>
+              <option value="<%= category.name %>"><%= category.label %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="col-md-1 col-sm-1"></div>
+        </div>
+        <div class="form-group mc-voffset-10">
+          <input type="text" class="form-control view-name" placeholder="View Name">
+        </div>
+      </div>
+
+      <div class="modal-body-header">
+        <div class="row mc-sm-gutter">
+          <div class="col-md-7 col-xs-12 mc-checkbox mc-checkbox-primary shared-check-wrapper">&nbsp;
+            <% if (has_permission("share_dealroom_views")) { %>
+            <input type="checkbox" id="sharedViewCheckBox" name="sharedInd">
+            <label for="sharedViewCheckBox">Share this view </label>
+            <% } %>
+          </div>
+
+          <div class="col-md-5 col-xs-12 pull-right">
+            <input type="text" class="form-control search-column" id="mc_search_fields" placeholder="Search for fields">
+            <span class="form-control-feedback"><img src="app/Assets/ico-find.png" alt="Search"/></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc-modal-body-view">
+        <form>
+          <div class="container-fluid mc-no-gutter category-container">
+            <!-- Commonly Used Assumptions -->
+            <section>
+              <div class="row mc-sm-gutter mc-collapse-row commonly-used-text-wrapper">
+                <div class="col-md-12">
+                  <a role="button" data-toggle="collapse" href="#mc_modal_collapse_Commonly_Used_Assumptions" aria-expanded="true" aria-controls="mc_modal_collapse_Commonly_Used_Assumptions">
+                    <span class="fa fa-caret-down mc-fa-large mc-collapse-icon"></span><span>Commonly Used Assumptions</span>
+                  </a>
+                </div>
+              </div>
+              <div id="mc_modal_collapse_Commonly_Used_Assumptions" class="mc-expanded-viewlist collapse in">
+                <div class="row mc-sm-gutter mc-voffset-10 mc-view-options">
+                  <div class="col-md-12 select-all-wrap mc-checkbox mc-checkbox-primary">
+                    <input type="checkbox" class="select-all" id="select_all_common"><label for="select_all_common">Select All</label>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-footer mc-modal-footer">
+      <div class="container-fluid mc-no-gutter">
+        <div class="row mc-no-gutter">
+          <div class="col-md-6 col-xs-4 text-left mc-modal-footer-link">
+            <a class="delete-view">Delete this view </a>
+          </div>
+          <div class="col-md-6 col-xs-8 text-right">
+            <button type="button" class="btn btn-default mc-btn-default" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary mc-btn-primary mc_btn_save_view">Save View</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

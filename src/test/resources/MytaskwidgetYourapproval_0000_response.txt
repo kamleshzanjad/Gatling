@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Login</title>
+
+<script src="app/js/libs/gooddata/gooddata.min.js" async></script>
+<script src="app/js/login.js"></script>
+<style>
+	body{background-color: #F6F6F6;}
+	.header-logo{text-align:center; padding-bottom: 20px;}
+	.header-logo img{margin-left:70px;}
+	.login-wrapper{ width: 400px; margin: 5% auto; font-family: Arial;}
+	.form-field{padding-bottom: 10px;}
+	form {border:1px solid #E6E6E6; padding: 20px 30px; background-color: white; border-radius:4px 4px 0 0;}
+	.field-label{color: #999; font-size:12px;}
+	.form-field input{width:99%; padding: 5px 0; border-radius:2px; border: 2px solid #E6E6E6;}
+	.button-wrapper {text-align:right;}
+	.button-wrapper button{padding: 8px 10px;width: 100%;font-weight: bold;color: white;background-color: #0079c1;border: 2px solid black;border-radius: 6px;}
+	.title {color: #0079c1; font-size: 22px;}
+	.forgot-link {padding: 8px 0; text-align: center;}
+	.forgot-link a{text-decoration:none; font-weight:bold; color: #0079c1;}
+	.footer{background-color: white; border:1px solid #E6E6E6; border-radius:0 0 4px 4px;  padding: 8px 0;}
+	#error_msg{padding-bottom: 10px;}
+	
+	/* Forgot password form */
+	.popup-wrapper{position:absolute; width:398px; height:250px; display:none; background-color:#1B77BA; color:#FFF; font-weight: bold; margin-top:-250px; margin-left:1px;}
+	.popup-form{background: transparent; border:none; margin-top: 30px;}
+	.form-details{font-weight: normal;font-size:15px;}
+	.input-field{width:98%;margin-bottom: 20px;}
+	.form-button{float:right;padding: 2px 15px;}
+</style>
+
+</head>
+<body onload='document.f.userName.focus(); checkForError();if(location.search==="?fPwd"){document.getElementById("fpSource").value="sso";document.getElementById("source").value="sso";sFP();} var gd=gooddata.factory({domain:"analytics.gomercatus.com"});gd.user.logout();'>
+<div class="login-wrapper">
+	<div class="header-logo">
+		<img src="app/images/header_logo.png" alt="Header_and_notification_logo">
+	</div>
+	
+	<form id="login" name='f' action='external/getUserAuthType' method="POST" onsubmit="setUser();">
+		<div id="error_msg"></div>
+		<div class="form-field title">
+	        Sign in
+	    </div>
+	    <div class="form-field">
+	        <div class="field-label">Username</div>
+	        <div><input type="text" name="userName" id="userName"/></div>
+	    </div>
+	    <div class="button-wrapper">
+	        <button type="submit">Next</button>
+	    </div> 
+	</form>
+	
+	<div id="forgotW" class="popup-wrapper">
+		<form id="forgotF" class="popup-form" action="external/forgotPassword" method="POST" onSumbit="return false;">
+			<div class="form-details">Enter your username (email) below. Your password will be sent to the provided valid e-mail.</div>
+			<br>
+			Enter Email: <input id="emailInput" class="input-field" name="email" type="text"></input>
+			<input type="text" id="fpSource" name="initiatedBy" style="display: none; font-size: 0;"></input>
+			<input type="button" value="Submit" onclick="getToken();" class="form-button"></input>
+			<input type="button" value="Cancel" onclick="cancelFP();" class="form-button"></input>
+		</form>
+	</div>
+	
+	<div id="tokenW" class="popup-wrapper">
+		<form id="tokenF" class="popup-form" action="external" method="GET">
+			<div class="form-details">Your password reset request has been received. Your reset token has been e-mailed to you. Please check your e-mail and enter your token to proceed.</div>
+			<br>
+			Enter Token: <input id="tokenInput" class="input-field" name="userName" type="text"></input>
+			<input type="text" id="source" name="initiatedBy" style="display: none;"></input>
+			<input type="button" value="Submit" onclick="uPW();" class="form-button"></input>
+			<input type="button" value="Cancel" onclick="cTF();" class="form-button"></input>
+		</form>
+	</div>
+	
+</div>
+</body>
+</html>

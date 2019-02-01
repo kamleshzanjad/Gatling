@@ -1,0 +1,414 @@
+define([
+  'backbone',
+  'text!templates/projects/customViewFormTpl.html',
+], function(
+    Backbone,
+    Tpl) {
+  return Backbone.View.extend({
+    events: {
+      'keyup .search-column': 'searchColumns',
+      'click .mc-modal-body-view .mc-collapse-row': 'toggleSection',
+      'click .mc_btn_save_view': 'saveColumnConfiguration',
+      'click .delete-view': 'deleteView',
+      'change .select-all': 'selectAllInSection',
+    },
+
+    template: _.template(Tpl),
+
+    className: 'modal',
+
+    initialize: function(options) {
+      this.$el.attr('id', SCS.dialogIds.view);
+      this.$el.attr('tabindex', '-1');
+      this.$el.attr('role', 'dialog');
+      this.$el.attr('aria-labelledby', SCS.dialogIds.view + '_label');
+
+      this.selectedView = options.selectedView || null;
+      this.columnsArr = options.columnsArr || [];
+      this.allViewList = options.allViewList || [];
+      this.customizedColumns = [];
+      this.mode = options.mode || 'Projects';
+      this.orgId = options.orgId || null;
+      this.entityType = options.entityType;
+
+      this.columnTpl = _.template(
+          '<div class="col-md-6 col-sm-6 mc-checkbox mc-checkbox-primary">' +
+          '  <input type="checkbox" id="mc_edit_<%=src%>" <%= selected ? "checked=true" : "" %> value="<%=src%>">' +
+          '  <label for="mc_edit_<%=src%>"><%=header%></label>' +
+          '</div>');
+
+      this.categoryTpl = _.template(
+          '<section>' +
+          '  <% var name = categoryId ? categoryLabel : "Miscellaneous"; var catId = categoryId || "0";%>' +
+          '  <div class="row mc-sm-gutter mc-voffset-20 mc-collapse-row">' +
+          '    <div class="col-md-12">' +
+          '      <a role="button" data-toggle="collapse" href="#mc_modal_collapse_<%=catId%>" aria-expanded="true" ' +
+          'aria-controls="mc_modal_collapse_<%=catId%>">' +
+          '        <span class="fa fa-caret-down mc-fa-large mc-collapse-icon"></span><span><%=name%></span>' +
+          '      </a>' +
+          '    </div>' +
+          '  </div>' +
+          '  <div id="mc_modal_collapse_<%=catId%>" class="mc-expanded-viewlist collapse in">' +
+          '    <div class="row mc-sm-gutter mc-voffset-10 mc-view-options">' +
+          '      <div class="col-md-12 select-all-wrap mc-checkbox mc-checkbox-primary">' +
+          '        <input type="checkbox" class="select-all" data-cat="<%=categoryId%>" ' +
+          'id="select_all_<%=categoryId%>"><label for="select_all_<%=categoryId%>">Select All</label>' +
+          '      </div>' +
+          '    </div>' +
+          '  </div>' +
+          '</section>');
+    },
+
+    render: function() {
+      _.extend(this, Backbone.Events);
+      this.$el.html(this.template());
+      this.renderColumns();
+
+      if (this.mode !== 'Projects') {
+        // only show "apply to" for project/asset pipeline views
+        this.$('#mc_apply_to').parents('.row').hide();
+      }
+
+      return this;
+    },
+
+    renderColumns: function() {
+      var titlePrefix = '';
+      var applyToInput = this.$('#mc_apply_to').selectpicker({
+        noneSelectedText: 'Select Categories:',
+      });
+      if (this.selectedView) {
+        applyToInput.val(this.selectedView.projectCategories);
+      } else {
+        // if 'create', then select all
+        applyToInput.val(_.map(SCS.PROJECT_CATEGORY_TYPE, function(category) {
+          return category.name;
+        }));
+      }
+      applyToInput.selectpicker('refresh');
+
+      if (!this.selectedView) {
+        this.$('#modal_edit_view_label').text('Create new View');
+        this.$('.text-left.mc-modal-footer-link').empty();
+      } else {
+        this.customizedColumns = this.selectedView.data ? this.selectedView.data.split(',') : [];
+        this.$('input.view-name').val(this.selectedView.filterName);
+        this.$('#modal_edit_view_label').text('Edit View');
+        if (has_permission('share_dealroom_views')) {
+          this.$('input[name=sharedInd]')[0].checked = this.selectedView.sharedInd;
+        }
+      }
+      if (['TaskTemplates', 'modelTemplates', 'summaryTemplates'].indexOf(this.mode) > -1) {
+        if (this.mode === 'TaskTemplates') {
+          titlePrefix = 'Task';
+        } else if (this.mode === 'modelTemplates') {
+          titlePrefix = 'Model';
+        } else if (this.mode === 'summaryTemplates') {
+          titlePrefix = 'Summary';
+        }
+
+        this.$('#modal_edit_view_label').text(titlePrefix + ' Template Criteria');
+        this.$('.name-wrapper').hide();
+        this.$('.mc-checkbox').hide();
+        this.$('.text-left.mc-modal-footer-link').empty();
+        this.$('.mc_btn_save_view').text('Save');
+      } else if (this.mode === 'Tasks') {
+        this.$('.commonly-used-text-wrapper').hide();
+        this.$('.mc-modal-body .mc-view-options').css('marginTop', '5px');
+        var container = this.$('#mc_modal_collapse_Commonly_Used_Assumptions');
+        var fixedFieldHtml =
+            '<div class="col-md-6 col-sm-6 mc-checkbox mc-checkbox-primary">' +
+            '  <input type="checkbox" checked=true disabled=true><label>ID</label>' +
+            '</div>' +
+            '<div class="col-md-6 col-sm-6 mc-checkbox mc-checkbox-primary">' +
+            '  <input type="checkbox" checked=true disabled=true><label>Task Name</label>' +
+            '</div>';
+        if (this.entityType === 'GLOBAL_TASK_VIEW') {
+          fixedFieldHtml = fixedFieldHtml +
+              '<div class="col-md-6 col-sm-6 mc-checkbox mc-checkbox-primary">' +
+              '  <input type="checkbox" checked=true disabled=true><label>Project Name</label>' +
+              '</div>';
+        }
+        container.find('.mc-view-options').append(fixedFieldHtml);
+      }
+
+      _.each(this.columnsArr, function(column) {
+        var $container = null;
+        if (this.mode == 'Tasks') {
+          $container = this.$('#mc_modal_collapse_Commonly_Used_Assumptions');
+          column.header = column.name;
+        } else {
+          if (column.commonlyUsed) {
+            $container = this.$('#mc_modal_collapse_Commonly_Used_Assumptions');
+          } else {
+            $container = this.$('#mc_modal_collapse_' + (column.categoryId ? column.categoryId : '0'));
+            if ($container.length == 0) {
+              this.$('.category-container').append(this.categoryTpl(column));
+              $container = this.$('#mc_modal_collapse_' + column.categoryId);
+            }
+          }
+        }
+
+        column.selected = this.customizedColumns.indexOf(column.src) != -1;
+
+        $container.find('.mc-view-options').append(this.columnTpl(column));
+      }, this);
+
+      // hide common section if there is no any commonly used assumption
+      if (this.$('#mc_modal_collapse_Commonly_Used_Assumptions .mc-checkbox').length == 1) {
+        this.$('#mc_modal_collapse_Commonly_Used_Assumptions').parents('section').hide();
+      }
+    },
+
+    toggleSection: function(e) {
+      $(e.currentTaget).find('.mc-collapse-icon').toggleClass('fa-caret-right fa-caret-down');
+    },
+
+    selectAllInSection: function(e) {
+      var checkboxes = $(e.currentTarget).closest('.mc-expanded-viewlist').find(':checkbox:not(:disabled)');
+      if ($(e.currentTarget).is(':checked')) {
+        checkboxes.prop('checked', true);
+      } else {
+        checkboxes.prop('checked', false);
+      }
+    },
+
+    searchColumns: function() {
+      var query = this.$('input.search-column').val().trim();
+
+      var _self = this;
+      this.searchDelayedTask = setTimeout(function() {
+        if (query) {
+          _self.$('.category-container section').hide();
+          _self.$('.category-container .mc-view-options .mc-checkbox').each(function() {
+            if ($(this).text().toUpperCase().indexOf(query.toUpperCase()) >= 0) {
+              if ($(this).hasClass('select-all-wrap')) {
+                $(this).hide();
+              } else {
+                $(this).show();
+                $(this).parents('section').show();
+              }
+            } else {
+              $(this).hide();
+            }
+          });
+        } else {
+          _self.$('.category-container section').show();
+          _self.$('.category-container .mc-view-options .mc-checkbox').show();
+        }
+
+        // hide common section if there is no any commonly used assumption
+        if (_self.$('#mc_modal_collapse_Commonly_Used_Assumptions .mc-checkbox').length == 1) {
+          _self.$('#mc_modal_collapse_Commonly_Used_Assumptions').parents('section').hide();
+        }
+      }, 500);
+    },
+
+    saveColumnConfiguration: function() {
+      if (['TaskTemplates', 'modelTemplates', 'summaryTemplates'].indexOf(this.mode) > -1) {
+        this.saveTaskTemplateCriteria();
+      } else {
+        this.saveView(this.selectedView ? false : true);
+      }
+    },
+
+    saveTaskTemplateCriteria: function() {
+      resetFormErrors(this.$el);
+      this.getColumnConfiguration();
+      if (!this.selectedColumnIds.length) {
+        formError('Please select atleast one column.', this.$('.mc-modal-body-view'));
+        return false;
+      }
+      if (this.selectedColumnIds.length > 5) {
+        formError('Maximun 5 fields can be selected.Please remove extra fields.', this.$('.mc-modal-body-view'));
+        return false;
+      }
+
+      var json = {
+        data: this.selectedColumnIds,
+        orgId: this.orgId || SCS.SELECTED_ORG_BY_ADMIN,
+      };
+
+      var url = '';
+      var title = '';
+      if (this.mode === 'TaskTemplates') {
+        url = 'rest/wfTaskTemplate/createUpdateTemplateCriteria';
+        title = 'Task Template';
+      } else if (this.mode === 'modelTemplates') {
+        url = 'rest/admin/mfms/createUpdateTemplateCriteria';
+        title = 'Model Template';
+      } else if (this.mode === 'summaryTemplates') {
+        url = 'rest/admin/mfms/createUpdateSummaryCriteria';
+        title = 'Summary Template';
+      }
+
+      var _self = this;
+      $.ajax({
+        type: 'POST',
+        url: url,
+        dataType: 'json',
+        data: JSON.stringify(json),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          var fields = response.data;
+          _self.trigger('onSave', fields);
+          toastr.info(title + ' criteria updated successfully.');
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          var errorMessage = $.parseJSON(jqXHR.responseText);
+          toastr.error(errorMessage.error, title + 's');
+        },
+      });
+    },
+
+    saveView: function(isNew) {
+      resetFormErrors(this.$el);
+
+      // check for "apply to"
+      if (this.mode === 'Projects' && !this.$('#mc_apply_to').val()) {
+        var focusEl = this.$('#mc_apply_to').data('selectpicker').$button;
+        formError('Please select 1 or more categories', focusEl, true);
+        focusEl.focus();
+        return false;
+      }
+
+      var filterName = this.$('input.view-name').val().trim();
+      if (!filterName) {
+        formError('Please enter View name.', this.$('input.view-name'));
+        return;
+      }
+
+      this.getColumnConfiguration();
+      var newColumnConfigData = this.selectedColumnIds.toString();
+      if (!newColumnConfigData) {
+        formError('Please select atleast one column.', this.$('.mc-modal-body-view'));
+        return false;
+      }
+
+      // Check for unique filter name
+      var recordIndex = indexOfJSONArr(this.allViewList, 'filterName', filterName);
+      if (recordIndex != -1 && this.allViewList[recordIndex].filterId != (this.selectedView ? this.selectedView.filterId
+          : -1)) {
+        formError('View with name "' + filterName + '" already exists.', this.$('input.view-name'));
+        return false;
+      }
+
+      var json = {
+        userId: (isNew ? SCS.LOGGED_IN_USER.userId : this.selectedView.userId),
+        data: newColumnConfigData,
+        filterName: filterName,
+        projectCategories: this.$('#mc_apply_to').val(),
+        filterId: (isNew ? null : 1 * this.selectedView.filterId),
+        orgId: SCS.SELECTED_ORG_BY_ADMIN,
+        sharedInd: has_permission('share_dealroom_views') ? this.$('input[name=sharedInd]').is(':checked') : (isNew
+            ? false : this.selectedView.sharedInd),
+        defaultInd: (isNew ? false : this.selectedView.defaultInd),
+      };
+
+      this.updateConfigInDB(json, isNew);
+    },
+
+    getColumnConfiguration: function() {
+      var _self = this;
+      var newConfiguration = [];
+      this.selectedColumnIds = [];
+
+      this.$('.category-container .mc-view-options .mc-checkbox input[type=checkbox]').each(function() {
+        if (!$(this).hasClass('select-all') && $(this).is(':checked:not(:disabled)')) {
+          var src = $(this).val();
+          _self.selectedColumnIds.push(src);
+        }
+      });
+
+      var sortedColumns = this.getColumnsInSortedOrder();
+      this.selectedColumnIds = sortedColumns;
+      _.each(sortedColumns, function(src) {
+        var recordIndex = indexOfJSONArr(this.columnsArr, 'src', src);
+        if (recordIndex != -1) {
+          newConfiguration.push(this.columnsArr[recordIndex]);
+        }
+      }, this);
+      return newConfiguration;
+    },
+
+    getColumnsInSortedOrder: function() {
+      try {
+        var oldArr = this.selectedView.data.split(',');
+        var newSelection = this.selectedColumnIds;
+        var commonArr = _.intersection(oldArr, newSelection);
+        var newArr = _.difference(newSelection, oldArr);
+        return commonArr.concat(newArr);
+      } catch (ex) {
+        return this.selectedColumnIds;
+      }
+    },
+
+    updateConfigInDB: function(jsonData, isNew) {
+      var _self = this;
+      $.ajax({
+        type: 'POST',
+        url: this.mode == 'Tasks' ? 'rest/wfTask/' + this.entityType + '/views/save'
+            : 'rest/projects/saveColumnConfigure',
+        dataType: 'json',
+        data: JSON.stringify(jsonData),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          var filter = response.data;
+          _self.trigger('onSave', filter, isNew);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          var errorMessage = $.parseJSON(jqXHR.responseText);
+          toastr.error(errorMessage.error, (isNew ? 'Create new View' : 'Edit View'));
+        },
+      });
+    },
+
+    deleteView: function() {
+      if (this.selectedView.defaultInd ||
+          this.selectedView.filterId == -1 ||
+          (this.selectedView.sharedInd && this.selectedView.userId != SCS.LOGGED_IN_USER.userId)) {
+        toastr.info('You can not delete ' + ((this.selectedView.defaultInd || this.selectedView.filterId == -1)
+            ? 'Default' : 'Shared') + ' view');
+        return;
+      }
+
+      var r = confirm('Are you sure you to delete view "' + this.selectedView.filterName + '"?');
+      if (!r) {
+        return false;
+      }
+
+      var json = {
+        filterId: this.selectedView.filterId,
+        sharedInd: false,
+      };
+      var _self = this;
+      $.ajax({
+        type: 'POST',
+        url: this.mode == 'Tasks' ? 'rest/wfTask/' + this.entityType + '/views/delete'
+            : 'rest/projects/deleteColumnConfigure',
+        dataType: 'json',
+        data: JSON.stringify(json),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          if (response.data) {
+            _self.trigger('onDelete', _self.selectedView.filterId);
+          } else {
+            toastr.error('Failed to delete View');
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          toastr.error('Failed to delete View');
+        },
+      });
+    },
+  });
+});

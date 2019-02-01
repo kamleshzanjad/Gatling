@@ -1,0 +1,521 @@
+define([
+  'backbone',
+  'views/pm/taskUtil',
+  'views/projects/filterView',
+  'views/localizationUtil',
+  'text!templates/pm/filtersMenuTpl.html',
+], function(
+    Backbone,
+    TaskUtil,
+    FilterView,
+    LocalizationUtil,
+    Tpl) {
+  var View = Backbone.View.extend({
+    events: {
+      'click .menu-item': 'changeFilter',
+      'click .mc-item-link': 'createFilter',
+      'click .mc-ico-edit': 'editFilter',
+    },
+
+    template: _.template(Tpl),
+
+    className: 'task-filters-menu btn-group mc-menu mc-menu-filter',
+
+    initialize: function(options) {
+      _.extend(this, Backbone.Events);
+
+      this.orgId = options.orgId || SCS.LOGGED_IN_USER.orgId;
+      this.userDateFormat = getDateFormat().jQueryFormat;
+      this.menuItemTpl = _.template(
+          '<li class="menu-item">' +
+          '  <div class="container-fluid mc-no-gutter">' +
+          '    <div class="row mc-sm-gutter">' +
+          '      <div class="col-md-11 col-sm-11 col-xs-11 mc-item">' +
+          '        <div class="mc-item-name mc-ellipsis"><%=filter.filterName%></div>' +
+          '        <div class="mc-item-desc mc-ellipsis"><%=filterDesc%></div>' +
+          '      </div>' +
+          '      <div class="col-md-1 col-sm-1 col-xs-1 pull-right mc-ico-edit">' +
+          '        <a><img src="app/Assets/ico-edit.png" alt="Edit" /></a>' +
+          '      </div>' +
+          '    </div>' +
+          '  </div>' +
+          '</li>' +
+          '<li role="separator" class="divider"></li>'
+      );
+      this.type = options.type || 'projects';
+      this.defaultFilterId = -1;
+      this.entityId = options.entityId;
+      this.entityType = options.entityType;
+      this.isLabelVisible = options.labelVisible === true;
+      this.isCreateFilterVisible = typeof(options.createFilterVisible) === 'undefined'
+          || options.createFilterVisible;
+    },
+
+    render: function() {
+      this.$el.html(this.template({isLabelVisible: this.isLabelVisible}));
+      this.loadUsersAndPopulateMenus();
+
+      this.$('.dropdown-menu').css({'max-height': $(window).height() / 2.5});
+      return this;
+    },
+
+    loadUsersAndPopulateMenus: function(row, assumption, type) {
+      if (SCS.STORE.TASK_RESOURCES) {
+        this.loadAndPopulateMenus();
+      } else {
+        var _self = this;
+        // load task resources
+        $.ajax({
+          url: 'rest/wfTask/' + this.entityType + '/taskResources/' + this.orgId,
+          dataType: 'json',
+          success: function(response) {
+            SCS.STORE.TASK_RESOURCES = response.data || [];
+          },
+          complete: function() {
+            _self.loadAndPopulateMenus();
+          },
+        });
+      }
+    },
+
+    loadAndPopulateMenus: function() {
+      // Get task filter config
+      this.filtersConfig = [];
+      var url = 'rest/wfTask/' + this.entityType + '/filterConfig';
+      if (this.type === 'template') {
+        url = 'rest/wfTask/' + this.entityType + '/template/filterConfig';
+      }
+      showLoader($(window).width() / 2);
+      var _self = this;
+      $.ajax({
+        type: 'GET',
+        url: url,
+        dataType: 'json',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          _self.filtersConfig = response.data || [];
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          var errorMessage = $.parseJSON(jqXHR.responseText);
+          toastr.error(errorMessage.error, 'Task Filters');
+        },
+        complete: function() {
+          _self.getFiltersAndPopulate();
+          hideLoader();
+        },
+      });
+    },
+
+    getFiltersAndPopulate: function() {
+      // Get filters
+      this.filtersList = [];
+      var url = 'rest/wfTask/' + this.entityType + '/filters';
+      if (this.type === 'template') {
+        url = 'rest/wfTask/' + this.entityType + '/template/filters';
+      }
+      showLoader($(window).width() / 2);
+      var _self = this;
+      $.ajax({
+        type: 'GET',
+        url: url,
+        dataType: 'json',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          _self.filtersList = response.data || [];
+          _self.trigger('onFiltersLoaded', _self.filtersList);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          var errorMessage = $.parseJSON(jqXHR.responseText);
+          toastr.error(errorMessage.error, 'Task Filters');
+        },
+        complete: function() {
+          _self.filtersList.unshift({filterId: -1, filterName: 'None', data: '[]'});
+          _self.populateMenus();
+          hideLoader();
+        },
+      });
+    },
+
+    populateMenus: function() {
+      var getSymbol = function(taskField, val) {
+        if (val.trim() === 'Equals') {
+          if (taskField.fieldType === 'select' || taskField.fieldType === 'multiselect' ||
+              taskField.fieldType === 'userlist' || taskField.fieldType === 'yesno' ||
+              taskField.fieldType === 'orguserlist') {
+            return 'is';
+          } else {
+            return 'Equals';
+          }
+        } else if (val.trim() === 'Contains') {
+          return 'contains';
+        }
+        return SCS.FILTER_OPERATOR[val] || val;
+      };
+
+      this.$('.dropdown-menu').empty();
+      _.each(this.filtersList, function(filter) {
+        // Create filter description
+        var filterDesc = '';
+        var criteriaArr = JSON.parse(filter.data) || [];
+        filter.filterData = criteriaArr;
+        var criLen = criteriaArr.length;
+        var lastLoadedFilter = SCS.LastLoadedTaskFilter;
+        if (this.type === 'template') {
+          lastLoadedFilter = SCS.LastLoadedTaskTemplateFilter;
+        } else if (this.type === 'GLOBAL') {
+          // Requested to not retain last loaded filter for
+          // global tasks.   If this is wanted, set to
+          // SCS.LastLoadedGlobalTaskFilter;
+          lastLoadedFilter = -1;
+        }
+        for (var idx = 0; idx < criLen; idx++) {
+          if (filter.defaultInd) {
+            continue;
+          }
+          var dataArr = criteriaArr[idx].split('||');
+          var taskField;
+          if (-1 != dataArr[0]) {
+            taskField = this.getFieldFromId(dataArr[0].trim());
+          }
+          if (taskField) {
+            if (idx !== 0) {
+              filterDesc += ', ';
+            }
+
+            if (dataArr[1] !== 'Between') {
+              var val = dataArr[2];
+              if (taskField.fieldType === 'yesno') {
+                val = val.replace('1', 'Yes').replace('0', 'No');
+              } else if (taskField.fieldType === 'date') {
+                val = LocalizationUtil.dateToString(new Date(val), this.userDateFormat);
+              } else if (taskField.fieldType === 'assignee' && SCS.STORE.TASK_RESOURCES) {
+                var values = val.split(',');
+                for (var i = 0; i < values.length; i++) {
+                  $.each(SCS.STORE.TASK_RESOURCES, function(index, user) {
+                    if (values[i] == user.id) {
+                      if (i != 0) {
+                        val += ', ';
+                      } else {
+                        // We have at least one match
+                        val = '';
+                      }
+                      var name = user.name;
+                      if (!name.trim()) {
+                        name = user.email;
+                      }
+                      val += name;
+                      return false;
+                    }
+                  });
+                }
+              } else if (taskField.fieldType === 'taskCategory' && TaskUtil.getTaskCategories()) {
+                var items = val.split(',');
+                var walk = [];
+
+                if (items[0] === '*') {
+                  walk.push('*');
+                } else {
+                  SCS.TASK_CATEGORIES.forEach(function(item) {
+                    if (items.indexOf(String(item.id)) > -1) {
+                      walk.push(item.name);
+                    }
+                  });
+                }
+
+                val = walk.join(' or ');
+              }
+
+              filterDesc += taskField.label + ' ' + getSymbol(taskField, dataArr[1]) + ' "' + val + '"';
+            } else {
+              values = dataArr[2].split('|');
+              var value1 = values[0];
+              var value2 = values[1];
+              if (taskField.fieldType === 'date') {
+                value1 = LocalizationUtil.dateToString(new Date(value1), this.userDateFormat);
+                value2 = LocalizationUtil.dateToString(new Date(value2), this.userDateFormat);
+              }
+              filterDesc += taskField.label + ' ' + getSymbol(taskField, dataArr[1]) + ' "' + value1 + '" and "'
+                  + value2 + '"';
+            }
+          }
+        }
+
+        if (filterDesc || filter.filterId === -1 || filter.defaultInd) {
+          // Set default filter
+          if (lastLoadedFilter ? filter.filterId == lastLoadedFilter : filter.isLastLoaded === true) {
+            this.defaultFilterId = filter.filterId;
+            this.$('#mc_filter_menu_label_off .mc-value').text(filter.filterName);
+            if (filter.filterId !== -1) {
+              this.$('button').removeClass('btn-default mc-btn-default').addClass(
+                  'btn-primary mc-btn-primary mc-btn-selected');
+            }
+          }
+          var $menu = $(this.menuItemTpl({filter: filter, filterDesc: filterDesc}));
+          if (filter.filterId === -1 || filter.defaultInd) {
+            $menu.find('.mc-ico-edit').hide();
+            if (filter.filterId === -1) {
+              this.noneFilterView = $menu;
+              $menu.addClass('is-selected');
+            }
+          }
+          if (lastLoadedFilter ? (filter.filterId == lastLoadedFilter) : filter.isLastLoaded === true) {
+            if (this.noneFilter) {
+              this.noneFilterView.removeClass('is-selected');
+            }
+            $menu.addClass('is-selected');
+          }
+          $menu.data(filter);
+          this.$('.dropdown-menu').append($menu);
+        }
+      }, this);
+
+      // Create Filter link
+      if (this.isCreateFilterVisible) {
+        this.$('.dropdown-menu').append(
+            '<li class="add-button-menu">' +
+            '  <div class="container-fluid mc-no-gutter">' +
+            '    <a>' +
+            '      <div class="row mc-sm-gutter">' +
+            '        <div class="col-md-11 col-sm-11 col-xs-11 mc-item mc-item-link">Create new filter...</div>' +
+            '        <div class="col-md-1 col-sm-1 col-xs-1 pull-right"></div>' +
+            '      </div>' +
+            '    </a>' +
+            '  </div>' +
+            '</li>'
+        );
+      }
+    },
+
+    changeFilter: function(e) {
+      var viewData = $(e.currentTarget).data();
+      // Don't update if current filter is selected again
+      if (viewData.filterId == this.defaultFilterId) {
+        return;
+      }
+      var _self = this;
+      this.updateLastLoaded(viewData.filterId, function(err, tasks) {
+        if (!err) {
+          _self.$('.menu-item.is-selected').removeClass('is-selected');
+          $(e.currentTarget).addClass('is-selected');
+          if (_self.type === 'projects') {
+            SCS.LastLoadedTaskFilter = viewData.filterId;
+          } else if (_self.type === 'GLOBAL') {
+            SCS.LastLoadedGlobalTaskFilter = viewData.filterId;
+          } else {
+            SCS.LastLoadedTaskTemplateFilter = viewData.filterId;
+          }
+
+          // Update filterVOs
+          _self.updateLoadedFilterId(viewData.filterId);
+
+          _self.trigger('onFilterChange', viewData, tasks);
+        }
+      });
+    },
+
+    createFilter: function(e) {
+      this.showFilter();
+    },
+
+    editFilter: function(e) {
+      var menuItem = $(e.currentTarget).parents('.menu-item');
+      this.showFilter(menuItem.data());
+      // Close popup
+      $('.dealroom-filters-menu').removeClass('open');
+      // Don't fire filterChange
+      e.stopPropagation();
+    },
+
+    showFilter: function(data) {
+      SCS.dialogIds.filter = 'modal_filter_view';
+      var mode = data ? 'edit' : 'create';
+      // Check if edited filter is current filter
+      if (data && (data.filterId == this.defaultFilterId)) {
+        data.isLastLoaded = true;
+      }
+      this.addUpdateFilter = new FilterView({
+        mode: mode, filter: data, filtersList: this.filtersList,
+        assumptionsList: this.formatDataForFilter(), filterType: 'Tasks',
+      });
+      // this.$(".mc-filters-new").append(this.addUpdateFilter.render().el);
+
+      this.addUpdateFilter.on('onCreate', function(filter) {
+        this.updateFilter(filter, true);
+        $('#' + SCS.dialogIds.filter).modal('hide');
+      }, this);
+
+      this.addUpdateFilter.on('onUpdate', function(filter) {
+        var recordIndex = indexOfJSONArr(this.filtersList, 'filterId', filter.filterId);
+        if (recordIndex !== -1) {
+          this.updateFilter(filter, filter.isLastLoaded === true);
+        }
+        $('#' + SCS.dialogIds.filter).modal('hide');
+      }, this);
+
+      this.addUpdateFilter.on('onDelete', function(filter) {
+        this.updateFilter(filter, filter.isLastLoaded === true, true);
+        $('#' + SCS.dialogIds.filter).modal('hide');
+      }, this);
+
+      this.addUpdateFilter.on('onCancel', function() {
+        $('#' + SCS.dialogIds.filter).modal('hide');
+      });
+      openViewInDialog(SCS.dialogIds.filter, this.addUpdateFilter);
+    },
+
+    updateFilter: function(filter, loadProject, isDelete) {
+      var url = isDelete ? 'rest/wfTask/' + this.entityType + '/filter/' + filter.filterId : 'rest/wfTask/' +
+          this.entityType + '/' + (this.type === 'template' ? 'template/' : '') + 'addUpdateFilter';
+      var type = isDelete ? 'DELETE' : 'POST';
+      var _self = this;
+      $.ajax({
+        type: type,
+        url: url,
+        dataType: 'json',
+        data: JSON.stringify(filter),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          if (response.data && response.data.filterId) {
+            var recordIndex = indexOfJSONArr(_self.filtersList, 'filterId', response.data.filterId);
+            if (recordIndex !== -1) {
+              _self.filtersList[recordIndex] = response.data;
+              _self.trigger('onFilterUpdate', loadProject, null);
+              _self.populateMenus();
+            } else {
+              _self.filtersList.push(response.data);
+              // Load newly created view
+              if (loadProject) {
+                _self.updateLastLoaded(response.data.filterId, function(err, tasks) {
+                  if (!err) {
+                    // Update filterVOs
+                    _self.updateLoadedFilterId(response.data.filterId);
+                  }
+                  _self.trigger('onFilterUpdate', loadProject, tasks);
+                  _self.populateMenus();
+                });
+              } else {
+                _self.trigger('onFilterUpdate', loadProject, null);
+                _self.populateMenus();
+              }
+            }
+            if (loadProject) {
+              if (_self.type === 'projects') {
+                SCS.LastLoadedTaskFilter = response.data.filterId;
+              } else {
+                SCS.LastLoadedTaskTemplateFilter = response.data.filterId;
+              }
+            }
+          } else if (isDelete) {
+            spliceJSONArr(_self.filtersList, 'filterId', filter.filterId);
+            if (loadProject) {
+              var newFilterId = _self.filtersList.length > 0 ? _self.filtersList[0].filterId : -1;
+              _self.updateLastLoaded(newFilterId, function(err, tasks) {
+                if (_self.type === 'projects') {
+                  SCS.LastLoadedTaskFilter = newFilterId;
+                } else {
+                  SCS.LastLoadedTaskTemplateFilter = newFilterId;
+                }
+                // Update filterVOs
+                _self.updateLoadedFilterId(newFilterId);
+                _self.trigger('onFilterUpdate', loadProject, tasks);
+                _self.populateMenus();
+              });
+            } else {
+              _self.trigger('onFilterUpdate', loadProject);
+              _self.populateMenus();
+            }
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          toastr.info('Failed to update filter');
+        }, complete: function() {
+          // _self.populateMenus();
+        },
+      });
+    },
+
+    updateLastLoaded: function(filterId, callback) {
+      var url = 'rest/wfTask/' + this.entityType + '/apply/filter/' + filterId + '/project/' + this.entityId;
+      if (this.type == 'template') {
+        url = 'rest/wfTask/' + this.entityType + '/apply/template/' + this.entityId + '/filter/' + filterId;
+      }
+      $.ajax({
+        url: url,
+        dataType: 'json',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        success: function(response) {
+          if (response) {
+            callback(null, response.data);
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          callback(jqXHR);
+          toastr.info('Failed to apply filter');
+        },
+      });
+    },
+
+    updateLoadedFilterId: function(newId) {
+      if (newId == -1) {
+        this.$('button .mc-value').text('None');
+        this.$('button').removeClass('btn-primary mc-btn-primary mc-btn-selected').addClass(
+            'btn-default mc-btn-default');
+      }
+      var recordIndex = indexOfJSONArr(this.filtersList, 'filterId', newId);
+      if (recordIndex !== -1) {
+        var filter = this.filtersList[recordIndex];
+        filter.isLastLoaded = true;
+        // Update filter button.
+        this.$('button .mc-value').text(filter.filterName);
+        if ((filter.filterName == 'None') && (newId == -1)) {
+          this.$('button').removeClass('btn-primary mc-btn-primary mc-btn-selected').addClass(
+              'btn-default mc-btn-default');
+        } else {
+          this.$('button').removeClass('btn-default mc-btn-default').addClass(
+              'btn-primary mc-btn-primary mc-btn-selected');
+        }
+      }
+      recordIndex = indexOfJSONArr(this.filtersList, 'filterId', this.defaultFilterId);
+      if (recordIndex !== -1) {
+        this.filtersList[recordIndex]['isLastLoaded'] = false;
+      }
+      this.defaultFilterId = newId;
+    },
+
+    formatDataForFilter: function() {
+      var assumptionsList = [];
+      $.each(this.filtersConfig, function(index, fieldConfig) {
+        assumptionsList.push({
+          assumptionId: fieldConfig.id,
+          header: fieldConfig.label,
+          fieldType: fieldConfig.fieldType,
+        });
+      });
+      return assumptionsList.length ? assumptionsList : null;
+    },
+
+    getFieldFromId: function(fId) {
+      var field = null;
+      $.each(this.filtersConfig, function(index, fieldConfig) {
+        if (fieldConfig.id == fId) {
+          field = fieldConfig;
+          return false;
+        }
+      });
+      return field;
+    },
+  });
+  return View;
+});

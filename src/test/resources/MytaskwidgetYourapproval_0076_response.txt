@@ -1,0 +1,30 @@
+<div class="pm-table-header-wrapper <%= fixedColumn ? 'pm-fixed-column-wrapper' : '' %>">
+  <div class="pm-table-header">
+    <div class="pm-tr">
+      <% _.each(columnConfig, function(column, index){ %>
+      <div class="pm-th pm-cell-<%=column.width%> <%=column.className%> <%=column.sortable ? 'sortable': ''%> <%= (fixedColumn && index==0) ? 'pm-fixed-col' : ''%>" data-src='<%=column.src%>' data-toggle='popover' data-trigger='hover' data-placement='top' data-container='body' data-content="<%=column.tooltip%>">
+        <% if(column.headerRenderer){ %>
+        <%= column.headerRenderer.call(column) %>
+        <% } else { %>
+        <%=column.name%>
+        <%if(column.sort !== false){%>
+        <span class="fa fa-caret-down mc-ico-sort"></span>
+        <%}%>
+        <% } %>
+      </div>
+      <% }); %>
+    </div>
+  </div>
+</div>
+
+<div class="pm-table-body-wrapper <%= fixedColumn ? 'pm-fixed-column-wrapper' : '' %>">
+  <div class="pm-table-body">
+
+  </div>
+  <% if(fixedColumn){ %>
+  <div class="mask_fix_column_scroll"></div>
+  <div class="pm-table-column-scroller">
+    <div></div>
+  </div>
+  <% } %>
+</div>
