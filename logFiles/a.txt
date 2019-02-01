@@ -1,0 +1,22 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< io.gatling:gatling-maven-plugin-demo >----------------
+[INFO] Building gatling-maven-plugin-demo 3.0.3
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- gatling-maven-plugin:3.0.1:test (default-cli) @ gatling-maven-plugin-demo ---
+16:07:40,256 |-INFO in ch.qos.logback.classic.LoggerContext[default] - Found resource [logback-test.xml] at [file:/E:/Gatling/target/test-classes/logback-test.xml]
+16:07:40,257 |-WARN in ch.qos.logback.classic.LoggerContext[default] - Resource [logback-test.xml] occurs multiple times on the classpath.
+16:07:40,257 |-WARN in ch.qos.logback.classic.LoggerContext[default] - Resource [logback-test.xml] occurs at [file:/E:/Gatling/target/test-classes/logback-test.xml]
+16:07:40,257 |-WARN in ch.qos.logback.classic.LoggerContext[default] - Resource [logback-test.xml] occurs at [file:/E:/Gatling/target/classes/logback-test.xml]
+16:07:40,871 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - debug attribute not set
+16:07:40,873 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - About to instantiate appender of type [ch.qos.logback.core.ConsoleAppender]
+16:07:40,884 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - Naming appender as [CONSOLE]
+16:07:40,893 |-INFO in ch.qos.logback.core.joran.action.NestedComplexPropertyIA - Assuming default type [ch.qos.logback.classic.encoder.PatternLayoutEncoder] for [encoder] property
+16:07:40,968 |-INFO in ch.qos.logback.classic.joran.action.LoggerAction - Setting level of logger [io.gatling.http.engine.response] to TRACE
+16:07:40,968 |-INFO in ch.qos.logback.classic.joran.action.RootLoggerAction - Setting level of ROOT logger to WARN
+16:07:40,968 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [CONSOLE] to Logger[ROOT]
+16:07:40,969 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - End of configuration.
+16:07:40,970 |-INFO in ch.qos.logback.classic.joran.JoranConfigurator@50b494a6 - Registering current configuration as safe fallback point
+
+Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? Terminate batch job (Y/N)? 

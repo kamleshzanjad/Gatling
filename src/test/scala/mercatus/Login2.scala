@@ -6,7 +6,7 @@ import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import io.gatling.jdbc.Predef._
 
-class Login2 extends Simulation {
+object Login2 extends Simulation {
 
 	val httpProtocol = http
 		.baseUrl("https://us-release.gomercatus.com")
