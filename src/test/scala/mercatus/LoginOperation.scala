@@ -3,15 +3,37 @@ package mercatus
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
-object Login {
-	def methodLogin(requestName:String, feederFile:String) ={
+object LoginOperation {
+	val headers_common = Map("Accept" -> "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+
+	val headers_0 = Map("Accept" -> "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+	val headers_2 = Map(
+		"Accept" -> "application/json, text/javascript, */*; q=0.01",
+		"X-Requested-With" -> "XMLHttpRequest")
+
+	val headers_3 = Map(
+		"Accept" -> "text/plain, */*; q=0.01",
+		"Content-Type" -> "text/plain;charset=UTF-8",
+		"X-Requested-With" -> "XMLHttpRequest")
+
+	val headers_9 = Map(
+		"Content-Type" -> "application/json;charset=UTF-8",
+		"X-Requested-With" -> "XMLHttpRequest")
+
+	val headers_10 = Map(
+		"Accept" -> "application/json",
+		"Content-Type" -> "application/json; charset=utf-8",
+		"X-Requested-With" -> "XMLHttpRequest")
+
+
+	def methodLogin(requestName:String) ={
 //		val feederCredentials= csv("TestDataFiles\\ConfigData\\" + feederFile).circular
 //		feed(feederCredentials)
 			exec(http(requestName)
 				.post("/external/getUserAuthType")
 				.headers(headers_0)
 				.formParam("userName", "${UserId}")
-				//.check(status.is(302))
+				.check(status.is(302))
 			)
 			.pause(10)
 			.exec(http(requestName)
@@ -19,7 +41,7 @@ object Login {
 				.headers(headers_0)
 				.formParam("j_username", "${UserId}")
 				.formParam("j_password", "${Password}")
-				//.check(status.is(302))
+				.check(status.is(302))
 				)
 			.pause(10)
 
@@ -57,12 +79,13 @@ object Login {
 						http(requestName)
 							.get("/rest/wfTask/A/globalTasks/3341?_=1548411351104")
 							.headers(headers_2)
-						,
-						http(requestName)
-							.post("/cometd/")
-							.headers(headers_9)
-							.body(RawFileBody("Login_0017_request.txt"))
-							.check(bodyBytes.is(RawFileBody("Login_0017_response.txt"))))
+					)
+//						,
+//						http(requestName)
+//							.post("/cometd/")
+//							.headers(headers_9)
+//							.body(RawFileBody("Login_0017_request.txt"))
+//							.check(bodyBytes.is(RawFileBody("Login_0017_response.txt"))))
 					//.check(bodyBytes.is(RawFileBody("Login_0002_response.txt"))))
 				)
 				.pause(1)
